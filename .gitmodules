@@ -1,0 +1,11 @@
+[submodule "tmux-continuum"]
+  path = ".config/tmux/plugins/tmux-continuum"
+  ignore = dirty
+
+[submodule "tmux-resurrect"]
+  path = ".config/tmux/plugins/tmux-resurrect"
+  ignore = dirty
+
+[submodule "alacritty-themes"]
+  path = ".config/alacritty/themes"
+  ignore = dirty
