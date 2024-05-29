@@ -6,6 +6,10 @@
   path = ".config/tmux/plugins/tmux-resurrect"
   ignore = dirty
 
+[submodule "tmux-tokyo-night"]
+  path = ".config/tmux/plugins/tmux-tokyo-night"
+  ignore = dirty
+
 [submodule "alacritty-themes"]
   path = ".config/alacritty/themes"
   ignore = dirty
