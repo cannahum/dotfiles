@@ -85,6 +85,12 @@ return {
           capabilities = capabilities,
         })
       end,
+      ["omnisharp"] = function()
+        lspconfig["omnisharp"].setup({
+          on_attach = on_attach,
+          capabilities = capabilities,
+        })
+      end,
       ["gopls"] = function()
         lspconfig["gopls"].setup({
           capabilities = capabilities,
