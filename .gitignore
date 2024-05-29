@@ -1,5 +1,7 @@
-.nvim-lazy-kickstarter
+nvim-lazy-kickstarter
 .DS_Store
 github-copilot
 iterm2
-tmux/plugins/*
+tmux/plugins
+alacritty/themes
+thefuck
