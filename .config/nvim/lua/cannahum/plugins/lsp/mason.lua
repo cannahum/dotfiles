@@ -45,7 +45,7 @@ return {
         "html",
         "htmx",
         "jsonls",
-        "java_language_server",
+        -- "java_language_server",
         "kotlin_language_server",
         "spectral",
         "rust_analyzer",
