@@ -1,3 +1,6 @@
+local pid = vim.fn.getpid()
+local omnisharp_bin = vim.fn.stdpath("data") .. "/mason/bin/omnisharp"
+
 return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
@@ -87,8 +90,32 @@ return {
       end,
       ["omnisharp"] = function()
         lspconfig["omnisharp"].setup({
-          on_attach = on_attach,
+          cmd = { omnisharp_bin, "--languageserver", "--hostPID", tostring(pid) },
+          root_dir = lspconfig.util.root_pattern("*.csproj", "*.sln"),
           capabilities = capabilities,
+          enable_roslyn_analysers = true,
+          enable_import_completion = true,
+          organize_imports_on_format = true,
+          enable_decompilation_support = true,
+          filetypes = { "cs", "vb", "csproj", "sln", "slnx", "props", "csx", "targets" },
+          on_attach = function(client, bufnr)
+            require("omnisharp_extended").on_attach(client, bufnr)
+            local opts = { noremap = true, silent = true }
+            opts.desc = "Show LSP references"
+            keymap.set("n", "gR", "<cmd>Telescope lsp_references<CR>", opts) -- show definition, references
+
+            opts.desc = "Go to declaration"
+            keymap.set("n", "gD", vim.lsp.buf.declaration, opts) -- go to declaration
+
+            opts.desc = "Show LSP definitions"
+            keymap.set("n", "gd", "<cmd>lua require('omnisharp_extended').telescope_lsp_definitions()<CR>", opts) -- show lsp definitions
+
+            opts.desc = "Show LSP implementations"
+            keymap.set("n", "gi", "<cmd>Telescope lsp_implementations<CR>", opts) -- show lsp implementations
+
+            opts.desc = "Show LSP type definitions"
+            keymap.set("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", opts) -- show lsp type definitions
+          end,
         })
       end,
       ["gopls"] = function()

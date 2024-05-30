@@ -46,6 +46,7 @@ return {
         "java",
         "python",
         "templ",
+        "c_sharp",
       },
       incremental_selection = {
         enable = true,
