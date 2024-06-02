@@ -134,14 +134,20 @@ return {
           end,
         })
       end,
-      ["htmx"] = function()
-        lspconfig["htmx"].setup({
-          capabilities = capabilities,
-          filetypes = { "html", "templ" },
-        })
-      end,
       ["html"] = function()
         lspconfig["html"].setup({
+          capabilities = capabilities,
+          filetypes = { "html", "templ" },
+          on_attach = function(client, bufnr)
+            vim.api.nvim_create_autocmd({ "BufWritePre" }, {
+              pattern = { "*.templ" },
+              callback = vim.lsp.buf.format,
+            })
+          end,
+        })
+      end,
+      ["htmx"] = function()
+        lspconfig["htmx"].setup({
           capabilities = capabilities,
           filetypes = { "html", "templ" },
         })
