@@ -21,6 +21,8 @@ return {
 
     local keymap = vim.keymap -- for conciseness
 
+    vim.filetype.add({ extension = { templ = "templ" } })
+
     vim.api.nvim_create_autocmd("LspAttach", {
       group = vim.api.nvim_create_augroup("UserLspConfig", {}),
       callback = function(ev)
@@ -134,29 +136,43 @@ return {
           end,
         })
       end,
-      ["html"] = function()
-        lspconfig["html"].setup({
+      ["templ"] = function()
+        lspconfig["templ"].setup({
+          -- on_attach = function(client, bufnr)
+          --   vim.api.nvim_create_autocmd({ "BufWritePre" }, {
+          --     pattern = { "*.templ" },
+          --     callback = vim.lsp.buf.format,
+          --   })
+          -- end,
+          on_attach = on_attach,
           capabilities = capabilities,
-          filetypes = { "html", "templ" },
-          on_attach = function(client, bufnr)
-            vim.api.nvim_create_autocmd({ "BufWritePre" }, {
-              pattern = { "*.templ" },
-              callback = vim.lsp.buf.format,
-            })
-          end,
-        })
-      end,
-      ["htmx"] = function()
-        lspconfig["htmx"].setup({
-          capabilities = capabilities,
-          filetypes = { "html", "templ" },
         })
       end,
       ["tailwindcss"] = function()
         lspconfig["tailwindcss"].setup({
           capabilities = capabilities,
-          filetypes = { "templ", "astro", "javascript", "typescript", "react" },
+          filetypes = { "templ", "astro", "javascript", "typescript", "react", "svelte" },
           init_options = { userLanguages = { templ = "html" } },
+        })
+      end,
+      ["html"] = function()
+        lspconfig["html"].setup({
+          on_attach = on_attach,
+          capabilities = capabilities,
+          filetypes = { "html", "templ" },
+          -- on_attach = function(client, bufnr)
+          --   vim.api.nvim_create_autocmd({ "BufWritePre" }, {
+          --     pattern = { "*.templ" },
+          --     callback = vim.lsp.buf.format,
+          --   })
+          -- end,
+        })
+      end,
+      ["htmx"] = function()
+        lspconfig["htmx"].setup({
+          on_attach = on_attach,
+          capabilities = capabilities,
+          filetypes = { "html", "templ" },
         })
       end,
       ["svelte"] = function()
