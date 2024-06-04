@@ -101,19 +101,25 @@ return {
           enable_decompilation_support = true,
           filetypes = { "cs", "vb", "csproj", "sln", "slnx", "props", "csx", "targets" },
           on_attach = function(client, bufnr)
-            require("omnisharp_extended").on_attach(client, bufnr)
-            local opts = { noremap = true, silent = true }
+            -- require("omnisharp_extended").on_attach(client, bufnr)
+            local opts = { noremap = false, silent = true }
             opts.desc = "Show LSP references"
-            keymap.set("n", "gR", "<cmd>Telescope lsp_references<CR>", opts) -- show definition, references
+            vim.api.nvim_buf_set_keymap(bufnr, "n", "gr", "<Cmd>lua vim.lsp.buf.references()<CR>", opts) -- show definition, references
 
-            opts.desc = "Go to declaration"
-            keymap.set("n", "gD", vim.lsp.buf.declaration, opts) -- go to declaration
+            opts.desc = "Go to definitions"
+            vim.api.nvim_buf_set_keymap(bufnr, "n", "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", opts) -- go to definition
 
-            opts.desc = "Show LSP definitions"
-            keymap.set("n", "gd", "<cmd>lua require('omnisharp_extended').telescope_lsp_definitions()<CR>", opts) -- show lsp definitions
+            opts.desc = "Show LSP declarations"
+            vim.api.nvim_buf_set_keymap(
+              bufnr,
+              "n",
+              "gD",
+              '<Cmd>lua require("omnisharp_extended").telescope_lsp_definitions()<CR>',
+              opts
+            ) -- show lsp declaration
 
             opts.desc = "Show LSP implementations"
-            keymap.set("n", "gi", "<cmd>Telescope lsp_implementations<CR>", opts) -- show lsp implementations
+            vim.api.nvim_buf_set_keymap(bufnr, "n", "gi", "<Cmd>lua vim.lsp.buf.implementation()<CR>", opts) -- show lsp implementations
 
             opts.desc = "Show LSP type definitions"
             keymap.set("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", opts) -- show lsp type definitions
