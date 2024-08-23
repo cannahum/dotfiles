@@ -47,6 +47,7 @@ return {
         "python",
         "templ",
         "c_sharp",
+        "kotlin",
       },
       incremental_selection = {
         enable = true,

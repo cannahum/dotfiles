@@ -68,6 +68,7 @@ return {
         "eslint_d",
         "golangci-lint",
         "csharpier",
+        "ktlint",
       },
     })
   end,

@@ -227,6 +227,13 @@ return {
           },
         })
       end,
+      ["kotlin_language_server"] = function()
+        lspconfig["kotlin_language_server"].setup({
+          capabilities = capabilities,
+          on_attach = on_attach,
+          filetypes = { "kt", "kts", "kotlin" },
+        })
+      end,
     })
   end,
 }
