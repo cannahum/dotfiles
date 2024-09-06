@@ -43,6 +43,7 @@ return {
         "vimdoc",
         "c",
         "go",
+        "gomod",
         "java",
         "python",
         "templ",
