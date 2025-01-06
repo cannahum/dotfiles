@@ -32,7 +32,8 @@ local initial_nvim_tree_setup = {
   actions = {
     open_file = {
       window_picker = {
-        enable = false,
+        enable = true,
+        chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", -- You can specify the characters used for window labels
       },
     },
   },
