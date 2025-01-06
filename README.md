@@ -1,5 +1,14 @@
 # Jon's environment files
 
+Use GNU Stow
+
+```
+stow nvim
+stow wezterm
+```
+
+## Note: Stow is not able to stow nvim or other packages that have shared `.config` directories on Mac machines.
+
 ### Some videos and resources that helped:
 
 - [Stow for Dotfiles](https://www.youtube.com/watch?v=y6XCebnB9gs)
