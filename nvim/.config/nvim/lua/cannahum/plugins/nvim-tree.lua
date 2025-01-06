@@ -43,6 +43,10 @@ return {
         width = vim.g.nvim_tree_width,
         relativenumber = true,
       },
+      update_focused_file = {
+        enable = true,
+        update_cwd = false,
+      },
       -- change folder arrow icons
       renderer = {
         indent_markers = {
