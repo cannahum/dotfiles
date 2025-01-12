@@ -54,6 +54,7 @@ return {
         "terraformls",
         "yamlls",
         "templ",
+        "marksman",
       },
     })
 

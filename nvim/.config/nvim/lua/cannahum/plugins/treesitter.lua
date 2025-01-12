@@ -32,6 +32,7 @@ return {
         "prisma",
         "markdown",
         "markdown_inline",
+        "mermaid",
         "svelte",
         "graphql",
         "bash",

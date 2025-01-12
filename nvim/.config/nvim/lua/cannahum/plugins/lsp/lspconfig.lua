@@ -234,6 +234,7 @@ return {
           filetypes = { "kt", "kts", "kotlin" },
         })
       end,
+      ["marksman"] = function() end,
     })
   end,
 }
