@@ -1,5 +1,4 @@
 local pid = vim.fn.getpid()
-local omnisharp_bin = vim.fn.stdpath("data") .. "/mason/bin/omnisharp"
 
 return {
   "neovim/nvim-lspconfig",
@@ -88,42 +87,6 @@ return {
       function(server_name)
         lspconfig[server_name].setup({
           capabilities = capabilities,
-        })
-      end,
-      ["omnisharp"] = function()
-        lspconfig["omnisharp"].setup({
-          cmd = { omnisharp_bin, "--languageserver", "--hostPID", tostring(pid) },
-          root_dir = lspconfig.util.root_pattern("*.csproj", "*.sln"),
-          capabilities = capabilities,
-          enable_roslyn_analysers = true,
-          enable_import_completion = true,
-          organize_imports_on_format = true,
-          enable_decompilation_support = true,
-          filetypes = { "cs", "vb", "csproj", "sln", "slnx", "props", "csx", "targets" },
-          on_attach = function(client, bufnr)
-            -- require("omnisharp_extended").on_attach(client, bufnr)
-            local opts = { noremap = false, silent = true }
-            opts.desc = "Show LSP references"
-            vim.api.nvim_buf_set_keymap(bufnr, "n", "gr", "<Cmd>lua vim.lsp.buf.references()<CR>", opts) -- show definition, references
-
-            opts.desc = "Go to definitions"
-            vim.api.nvim_buf_set_keymap(bufnr, "n", "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", opts) -- go to definition
-
-            opts.desc = "Show LSP declarations"
-            vim.api.nvim_buf_set_keymap(
-              bufnr,
-              "n",
-              "gD",
-              '<Cmd>lua require("omnisharp_extended").telescope_lsp_definitions()<CR>',
-              opts
-            ) -- show lsp declaration
-
-            opts.desc = "Show LSP implementations"
-            vim.api.nvim_buf_set_keymap(bufnr, "n", "gi", "<Cmd>lua vim.lsp.buf.implementation()<CR>", opts) -- show lsp implementations
-
-            opts.desc = "Show LSP type definitions"
-            keymap.set("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", opts) -- show lsp type definitions
-          end,
         })
       end,
       ["gopls"] = function()
