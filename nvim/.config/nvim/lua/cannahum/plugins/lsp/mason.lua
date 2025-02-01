@@ -55,6 +55,7 @@ return {
         "yamlls",
         "templ",
         "marksman",
+        "zls",
       },
     })
 

@@ -50,6 +50,7 @@ return {
         "templ",
         "c_sharp",
         "kotlin",
+        "zig",
       },
       incremental_selection = {
         enable = true,

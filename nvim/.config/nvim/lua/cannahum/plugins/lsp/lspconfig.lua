@@ -198,6 +198,16 @@ return {
         })
       end,
       ["marksman"] = function() end,
+      ["zls"] = function()
+        lspconfig["zls"].setup({
+          cmd = { vim.fn.stdpath("data") .. "/mason/bin/zls" },
+          on_attach = function(client, bufnr)
+            client.server_capabilities.documentFormattingProvider = true
+            client.server_capabilities.documentRangeFormattingProvider = true
+            vim.diagnostic.config({ virtual_text = true })
+          end,
+        })
+      end,
     })
   end,
 }
