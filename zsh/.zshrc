@@ -110,3 +110,7 @@ eval "$(rbenv init - zsh)"
 
 # To use fzf in Vim, add the following line to your .vimrc:
 #   set rtp+=/home/linuxbrew/.linuxbrew/opt/fzf
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
