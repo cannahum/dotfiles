@@ -96,7 +96,7 @@ export NVM_DIR="$HOME/.nvm"
 
 # PNPM
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  export PNPM_HOME="/Users/cannahum/Library/pnpm"
+  export PNPM_HOME="$HOME/Library/pnpm"
 else
   export PNPM_HOME="$HOME/.local/share/pnpm"
 fi
@@ -115,6 +115,13 @@ eval "$(rbenv init - zsh)"
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
+# NOTE: Fixed pyenv Python installation issue caused by Homebrew on Linux.
+# `pkg-config` was causing conflicts, so the fix was:
+#   brew unlink pkg-config
+#   pyenv install <version>
+#   brew link pkg-config
+# This ensures pyenv builds Python correctly without interference.
+# Found the issue and the resolution here: https://github.com/pyenv/pyenv/issues/2823
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init - zsh)"
