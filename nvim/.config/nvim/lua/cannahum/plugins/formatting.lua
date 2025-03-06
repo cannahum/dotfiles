@@ -43,23 +43,30 @@ return {
         timeout_ms = 1000,
       })
     end, { desc = "Format file or range (in visual mode)" })
-    vim.api.nvim_create_user_command("FormatDisable", function(args)
+
+    vim.api.nvim_create_user_command("CodeAutoformatSave", function(args)
       if args.bang then
-        -- FormatDisable! will disable formatting just for this buffer
-        vim.b.disable_autoformat = true
+        local curr = vim.b.disable_autoformat or false
+        vim.b.disable_autoformat = not curr
+        if vim.b.disable_autoformat then
+          print("Buffer autoformat on save disabled")
+        else
+          print("Buffer autoformat on save enabled")
+        end
       else
-        vim.g.disable_autoformat = true
+        local curr = vim.g.disable_autoformat or false
+        vim.g.disable_autoformat = not curr
+        if vim.g.disable_autoformat then
+          print("Global autoformat on save disabled")
+        else
+          print("Global autoformat on save enabled")
+        end
       end
     end, {
-      desc = "Disable autoformat-on-save",
       bang = true,
+      desc = "Toggle autoformat-on-save (use ! for buffer only)",
     })
 
-    vim.api.nvim_create_user_command("FormatEnable", function()
-      vim.b.disable_autoformat = false
-      vim.g.disable_autoformat = false
-    end, {
-      desc = "Re-enable autoformat-on-save",
-    })
+    vim.keymap.set("n", "<leader>cas", "<cmd>CodeAutoformatSave<cr>", { desc = "Toggle autoformat on save" })
   end,
 }
