@@ -41,7 +41,6 @@ return {
         "dockerls",
         "docker_compose_language_service",
         "gopls",
-        "html",
         "htmx",
         "jsonls",
         -- "java_language_server",

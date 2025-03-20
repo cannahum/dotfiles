@@ -1,5 +1,3 @@
-local pid = vim.fn.getpid()
-
 return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
@@ -205,6 +203,23 @@ return {
             client.server_capabilities.documentFormattingProvider = true
             client.server_capabilities.documentRangeFormattingProvider = true
             vim.diagnostic.config({ virtual_text = true })
+          end,
+        })
+      end,
+      -- Custom handler for `tsserver`
+      ["typescript-language-server"] = function()
+        lspconfig.tsserver.setup({
+          capabilities = capabilities,
+          on_attach = function(client, bufnr)
+            -- Add custom keymaps for tsserver, if needed
+            local opts = { buffer = bufnr, silent = true }
+
+            vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+            vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+            vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+
+            -- Optionally, disable formatting if you prefer to use another tool
+            client.server_capabilities.documentFormattingProvider = false
           end,
         })
       end,
