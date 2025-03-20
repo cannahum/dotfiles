@@ -125,3 +125,8 @@ export SDKMAN_DIR="$HOME/.sdkman"
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init - zsh)"
+
+# temporal.io
+if command -v temporal &> /dev/null; then
+  eval "$(temporal completion zsh)"
+fi
