@@ -130,3 +130,5 @@ eval "$(pyenv init - zsh)"
 if command -v temporal &> /dev/null; then
   eval "$(temporal completion zsh)"
 fi
+
+[ -f ~/.zshrc_local ] && source ~/.zshrc_local
