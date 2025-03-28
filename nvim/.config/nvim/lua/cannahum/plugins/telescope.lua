@@ -9,6 +9,7 @@ return {
   },
   config = function()
     local telescope = require("telescope")
+    local builtin = require("telescope.builtin")
     local actions = require("telescope.actions")
     local transform_mod = require("telescope.actions.mt").transform_mod
 
@@ -36,14 +37,15 @@ return {
       },
       pickers = {
         live_grep = {
-          file_ignore_patterns = { "node_modules", ".git/", ".venv" },
+          file_ignore_patterns = { "^node_modules/", "^.git/", "^.venv/" },
           additional_args = function(_)
             return { "--hidden" }
           end,
         },
         find_files = {
-          file_ignore_patterns = { "node_modules", ".git/", ".venv" },
-          hidden = true,
+          file_ignore_patterns = { "^node_modules/", "^.git/", "^.venv/" },
+          -- hidden = true,
+          -- no_ignore = true,
         },
       },
     })
@@ -53,9 +55,37 @@ return {
     -- set keymaps
     local keymap = vim.keymap -- for conciseness
 
-    keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "Fuzzy find files in cwd" })
-    keymap.set("n", "<leader>fs", "<cmd>Telescope live_grep<cr>", { desc = "Find string in cwd" })
-    keymap.set("n", "<leader>fc", "<cmd>Telescope grep_string<cr>", { desc = "Find string under cursor in cwd" })
+    -- Source files only
+    keymap.set("n", "<leader>ff", function()
+      builtin.find_files({ hidden = false, no_ignore = false })
+    end, { desc = "Find source files only" })
+
+    keymap.set("n", "<leader>fs", function()
+      builtin.live_grep({ hidden = false, no_ignore = false })
+    end, { desc = "Live grep in source files only" })
+
+    keymap.set("n", "<leader>fc", function()
+      builtin.grep_string({ hidden = false, no_ignore = false })
+    end, { desc = "Grep word under cursor in source files only" })
+
+    -- Everything (including ignored & hidden files)
+    keymap.set("n", "<leader>fF", function()
+      builtin.find_files({ hidden = true, no_ignore = true })
+    end, { desc = "Find all files (incl. ignored & hidden)" })
+
+    keymap.set("n", "<leader>fS", function()
+      builtin.live_grep({
+        additional_args = function(_)
+          return { "--hidden", "--no-ignore", "--no-ignore-vcs", "--smart-case" }
+        end,
+      })
+    end, { desc = "Live grep in all files (incl. ignored & hidden)" })
+
+    keymap.set("n", "<leader>fC", function()
+      builtin.grep_string({ hidden = true, no_ignore = true })
+    end, { desc = "Grep word under cursor in all files (incl. ignored & hidden)" })
+
+    -- Find todos
     keymap.set("n", "<leader>ft", "<cmd>TodoTelescope<cr>", { desc = "Find todos" })
   end,
 }
