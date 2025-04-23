@@ -1,0 +1,35 @@
+(defcfg
+  process-unmapped-keys yes
+  ;; devices ("/dev/input/by-path/*-kbd")
+)
+
+(defsrc
+  a s d f g h j k l scln
+  q w e r t y u i o p
+)
+
+(defalias
+  a-mod (tap-hold 200 200 a lctl)
+  s-mod (tap-hold 200 200 s lsft)
+  d-mod (tap-hold 200 200 d lalt)
+  f-mod (tap-hold 200 200 f lmet)
+
+  j-mod (tap-hold 200 200 j lmet)
+  k-mod (tap-hold 200 200 k ralt)
+  l-mod (tap-hold 200 200 l rsft)
+  semi-mod (tap-hold 200 200 scln rctl)
+
+  g-l1 (tap-hold 200 200 g (layer-while-held layer1))
+  h-l1 (tap-hold 200 200 h (layer-while-held layer1))
+)
+
+(deflayer base
+  @a-mod @s-mod @d-mod @f-mod @g-l1 @h-l1 @j-mod @k-mod @l-mod @semi-mod
+  q w e r t y u i o p
+)
+
+(deflayer layer1
+  1 2 3 4 5 6 7 8 9 0
+  S-1 S-2 S-3 S-4 S-5 S-6 S-7 S-8 S-9 S-0
+)
+
