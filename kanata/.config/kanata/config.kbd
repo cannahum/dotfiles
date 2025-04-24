@@ -4,8 +4,10 @@
 )
 
 (defsrc
+  q w e r t y u i o p lbrc rbrc
   a s d f g h j k l scln
-  q w e r t y u i o p
+  v b n m
+  lalt ralt
 )
 
 (defalias
@@ -19,17 +21,32 @@
   l-mod (tap-hold 200 200 l rsft)
   semi-mod (tap-hold 200 200 scln rctl)
 
-  g-l1 (tap-hold 200 200 g (layer-while-held layer1))
-  h-l1 (tap-hold 200 200 h (layer-while-held layer1))
+  n-num (tap-hold 200 200 n (layer-while-held layer1))
+  m-sym (tap-hold 200 200 m (layer-while-held layer2)) 
+  b-num (tap-hold 200 200 b (layer-while-held layer1))
+  v-sym (tap-hold 200 200 v (layer-while-held layer2)) 
+
+  lalt-l1 (tap-hold 200 200 lalt (layer-while-held layer1))
+  ralt-l1 (tap-hold 200 200 ralt (layer-while-held layer1))
 )
 
 (deflayer base
-  @a-mod @s-mod @d-mod @f-mod @g-l1 @h-l1 @j-mod @k-mod @l-mod @semi-mod
-  q w e r t y u i o p
+  q w e r t y u i o p lbrc rbrc
+  @a-mod @s-mod @d-mod @f-mod - - @j-mod @k-mod @l-mod @semi-mod
+  @v-sym @b-num @n-num @m-sym
+  lalt ralt
 )
 
 (deflayer layer1
-  1 2 3 4 5 6 7 8 9 0
-  S-1 S-2 S-3 S-4 S-5 S-6 S-7 S-8 S-9 S-0
+  1 2 3 4 5 6 7 8 9 0 min eql
+  a s d f g h j k l scln
+  v b n m
+  lmet lmet 
 )
 
+(deflayer layer2
+  S-1 S-2 S-3 S-4 S-5 S-6 S-7 S-8 S-9 S-0 _ +
+  a s d f g h j k l scln
+  v b n m
+  lmet lmet
+)
