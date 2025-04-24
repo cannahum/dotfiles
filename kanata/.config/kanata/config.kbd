@@ -32,7 +32,7 @@
 
 (deflayer base
   q w e r t y u i o p lbrc rbrc
-  @a-mod @s-mod @d-mod @f-mod - - @j-mod @k-mod @l-mod @semi-mod
+  @a-mod @s-mod @d-mod @f-mod g h @j-mod @k-mod @l-mod @semi-mod
   @v-sym @b-num @n-num @m-sym
   lalt ralt
 )
