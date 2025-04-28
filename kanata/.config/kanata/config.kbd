@@ -6,7 +6,7 @@
 (defsrc
   q w e r t y u i o p lbrc rbrc
   a s d f g h j k l scln
-  v b n m
+  z x c v b n m comm . /
   lalt ralt
 )
 
@@ -26,27 +26,54 @@
   b-num (tap-hold 200 200 b (layer-while-held layer1))
   v-sym (tap-hold 200 200 v (layer-while-held layer2)) 
 
-  lalt-l1 (tap-hold 200 200 lalt (layer-while-held layer1))
-  ralt-l1 (tap-hold 200 200 ralt (layer-while-held layer1))
+  lalt-nav (tap-hold 200 200 lalt (layer-while-held nav))
+  ralt-nav (tap-hold 200 200 ralt (layer-while-held nav))
+
+  nav-1 (multi rmet 1)
+  nav-2 (multi rmet 2)
+  nav-3 (multi rmet 3)
+  nav-4 (multi rmet 4)
+  nav-5 (multi rmet 5)
+  nav-6 (multi lmet 6)
+  nav-7 (multi lmet 7)
+  nav-8 (multi lmet 8)
+  nav-9 (multi lmet 9)
+
+  moveto-1 (multi rmet rsft 1)
+  moveto-2 (multi rmet rsft 2)
+  moveto-3 (multi rmet rsft 3)
+  moveto-4 (multi rmet rsft 4)
+  moveto-5 (multi rmet rsft 5)
+  moveto-6 (multi lmet lsft 6)
+  moveto-7 (multi lmet lsft 7)
+  moveto-8 (multi lmet lsft 8)
+  moveto-9 (multi lmet lsft 9)
 )
 
 (deflayer base
   q w e r t y u i o p lbrc rbrc
   @a-mod @s-mod @d-mod @f-mod g h @j-mod @k-mod @l-mod @semi-mod
-  @v-sym @b-num @n-num @m-sym
-  lalt ralt
+  z x c @v-sym @b-num @n-num @m-sym comm . /
+  @lalt-nav @ralt-nav
 )
 
 (deflayer layer1
   1 2 3 4 5 6 7 8 9 0 min eql
   a s d f g h j k l scln
-  v b n m
+  z x c v b n m comm . /
   lmet lmet 
 )
 
 (deflayer layer2
-  S-1 S-2 S-3 S-4 S-5 S-6 S-7 S-8 S-9 S-0 _ +
+  S-1 S-2 S-3 S-4 S-5 S-6 S-7 S-8 S-9 S-0 S-- +
   a s d f g h j k l scln
-  v b n m
+  z x c v b n m comm . /
   lmet lmet
+)
+
+(deflayer nav
+  @nav-1 @nav-2 @nav-3 @nav-4 @nav-5 @nav-6 @nav-7 @nav-8 @nav-9 0 min eql
+  a s d f g left down up right scln
+  @moveto-1 @moveto-2 @moveto-3 @moveto-4 @moveto-5 @moveto-6 @moveto-7 @moveto-8 @moveto-9 /
+  lalt ralt
 )
