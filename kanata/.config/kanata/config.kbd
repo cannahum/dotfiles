@@ -3,6 +3,13 @@
   ;; devices ("/dev/input/by-path/*-kbd")
 )
 
+(defvar
+  tap-timeout   100
+  hold-timeout  200
+  tt $tap-timeout
+  ht $hold-timeout
+)
+
 (defsrc
   q w e r t y u i o p lbrc rbrc
   a s d f g h j k l scln
@@ -11,23 +18,23 @@
 )
 
 (defalias
-  a-mod (tap-hold 200 200 a lctl)
-  s-mod (tap-hold 200 200 s lsft)
-  d-mod (tap-hold 200 200 d lalt)
-  f-mod (tap-hold 200 200 f lmet)
+  a-mod (tap-hold $tt $th a lctl)
+  s-mod (tap-hold $tt $th s lsft)
+  d-mod (tap-hold $tt $th d lalt)
+  f-mod (tap-hold $tt $th f lmet)
 
-  j-mod (tap-hold 200 200 j lmet)
-  k-mod (tap-hold 200 200 k ralt)
-  l-mod (tap-hold 200 200 l rsft)
-  semi-mod (tap-hold 200 200 scln rctl)
+  j-mod (tap-hold $tt $th j lmet)
+  k-mod (tap-hold $tt $th k ralt)
+  l-mod (tap-hold $tt $th l rsft)
+  semi-mod (tap-hold $tt $th scln rctl)
 
-  n-num (tap-hold 200 200 n (layer-while-held layer1))
-  m-sym (tap-hold 200 200 m (layer-while-held layer2)) 
-  b-num (tap-hold 200 200 b (layer-while-held layer1))
-  v-sym (tap-hold 200 200 v (layer-while-held layer2)) 
+  n-num (tap-hold $tt $th n (layer-while-held layer1))
+  m-sym (tap-hold $tt $th m (layer-while-held layer2)) 
+  b-num (tap-hold $tt $th b (layer-while-held layer1))
+  v-sym (tap-hold $tt $th v (layer-while-held layer2)) 
 
-  lalt-nav (tap-hold 200 200 lalt (layer-while-held nav))
-  ralt-nav (tap-hold 200 200 ralt (layer-while-held nav))
+  lalt-nav (tap-hold $tt $th lalt (layer-while-held nav))
+  ralt-nav (tap-hold $tt $th ralt (layer-while-held nav))
 
   nav-1 (multi rmet 1)
   nav-2 (multi rmet 2)
