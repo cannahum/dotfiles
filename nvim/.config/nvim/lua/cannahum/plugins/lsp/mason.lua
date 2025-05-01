@@ -69,6 +69,7 @@ return {
         "golangci-lint",
         "csharpier",
         "ktlint",
+        "sql-formatter",
       },
     })
   end,

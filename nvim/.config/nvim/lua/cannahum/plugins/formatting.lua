@@ -22,6 +22,14 @@ return {
         python = { "isort", "black" },
         kotlin = { "ktlint" },
         templ = { "templ" },
+        sql = { "sql-formatter" },
+      },
+      formatters = {
+        ["sql-formatter"] = {
+          command = "sql-formatter",
+          args = { "--language", "postgresql" },
+          stdin = true,
+        },
       },
       format_on_save = function(bufnr)
         -- Disable with a global or buffer-local variable
