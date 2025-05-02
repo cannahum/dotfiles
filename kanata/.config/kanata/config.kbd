@@ -4,10 +4,10 @@
 )
 
 (defvar
-  tap-timeout   100
-  hold-timeout  200
+  tap-timeout   200
+  hold-timeout  100
   tt $tap-timeout
-  ht $hold-timeout
+  th $hold-timeout
 )
 
 (defsrc
