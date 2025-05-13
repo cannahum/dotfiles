@@ -5,7 +5,7 @@
 
 (defvar
   tap-timeout   200
-  hold-timeout  100
+  hold-timeout  200
   tt $tap-timeout
   th $hold-timeout
 )
