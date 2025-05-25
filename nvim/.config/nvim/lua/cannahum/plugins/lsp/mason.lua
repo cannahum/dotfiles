@@ -25,39 +25,36 @@ return {
     })
 
     mason_lspconfig.setup({
-      -- list of servers for mason to install
       ensure_installed = {
-        "html",
-        "cssls",
-        "tailwindcss",
-        "svelte",
-        "lua_ls",
-        "graphql",
-        "emmet_ls",
-        "prismals",
-        "pyright",
-        "omnisharp",
         "cmake",
-        "dockerls",
+        "cssls",
         "docker_compose_language_service",
+        "dockerls",
+        "emmet_ls",
         "gopls",
+        "graphql",
+        "html",
         "htmx",
         "jsonls",
-        -- "java_language_server",
         "kotlin_language_server",
-        "spectral",
-        "rust_analyzer",
-        "sqlls",
-        "taplo",
-        "tailwindcss",
-        "terraformls",
-        "yamlls",
-        "templ",
+        "lua_ls",
         "marksman",
+        "omnisharp",
+        "prismals",
+        "pyright",
+        "rust_analyzer",
+        "spectral",
+        "sqlls",
+        "svelte",
+        "tailwindcss",
+        "taplo",
+        "templ",
+        "terraformls",
+        "ts_ls",
+        "yamlls",
         "zls",
       },
     })
-
     mason_tool_installer.setup({
       ensure_installed = {
         "prettier", -- prettier formatter
