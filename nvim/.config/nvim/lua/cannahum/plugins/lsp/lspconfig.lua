@@ -6,13 +6,6 @@ return {
     { "antosha417/nvim-lsp-file-operations", config = true },
     { "folke/neodev.nvim", opts = {} },
   },
-  opts = {
-    setup = {
-      ts_ls = function()
-        return true -- tells LazyVim to skip this server
-      end,
-    },
-  },
   config = function()
     local lspconfig = require("lspconfig")
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
@@ -82,6 +75,21 @@ return {
       on_attach = on_attach,
       filetypes = { "html", "templ" },
     })
+    -- TypeScript
+    lspconfig.ts_ls.setup({
+      capabilities = capabilities,
+      on_attach = function(client, bufnr)
+        -- Add custom keymaps for tsserver, if needed
+        local opts = { buffer = bufnr, silent = true }
+
+        vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+        vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+        vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+
+        -- Optionally, disable formatting if you prefer to use another tool
+        client.server_capabilities.documentFormattingProvider = false
+      end,
+    })
     -- Svelte
     lspconfig.svelte.setup({
       capabilities = capabilities,
@@ -131,21 +139,6 @@ return {
         client.server_capabilities.documentFormattingProvider = true
         client.server_capabilities.documentRangeFormattingProvider = true
         vim.diagnostic.config({ virtual_text = true })
-      end,
-    })
-    -- TypeScript
-    lspconfig.tsserver.setup({
-      capabilities = capabilities,
-      on_attach = function(client, bufnr)
-        -- Add custom keymaps for tsserver, if needed
-        local opts = { buffer = bufnr, silent = true }
-
-        vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-        vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-        vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-
-        -- Optionally, disable formatting if you prefer to use another tool
-        client.server_capabilities.documentFormattingProvider = false
       end,
     })
   end,
