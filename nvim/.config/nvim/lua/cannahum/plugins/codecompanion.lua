@@ -35,7 +35,8 @@ return {
     },
   },
   config = function(_, _)
-    require("codecompanion").setup({
+    local cc = require("codecompanion")
+    cc.setup({
       strategies = {
         chat = {
           adapter = "copilot",
@@ -45,5 +46,15 @@ return {
         },
       },
     })
+    local keymap = vim.keymap.set
+    keymap("n", "<leader>ii", function()
+      cc.inline({})
+    end, { desc = "Trigger CodeCompanion" })
+    keymap("n", "<leader>ic", function()
+      cc.chat()
+    end, { desc = "Trigger CodeCompanion Chat" })
+    keymap("n", "<leader>it", function()
+      cc.toggle()
+    end, { desc = "Toggle CodeCompanion" })
   end,
 }
