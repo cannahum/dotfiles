@@ -7,6 +7,33 @@ return {
   },
   config = function()
     local cc = require("codecompanion")
+    -- 🤖 Current model (default)
+    local current_model = "gpt-4o-mini"
+    -- 🧠 Define model selector function
+    local function choose_model()
+      local models = {
+        ["1"] = "gpt-4o",
+        ["2"] = "gpt-4o-mini",
+        ["3"] = "gpt-4.1",
+        ["4"] = "gpt-3.5-turbo",
+      }
+
+      local choice = vim.fn.input([[
+Choose OpenAI model:
+1. gpt-4o
+2. gpt-4o-mini
+3. gpt-4.1
+4. gpt-3.5-turbo
+Enter choice [1-4]: ]])
+
+      if models[choice] then
+        current_model = models[choice]
+        print("✅ Model set to: " .. current_model)
+      else
+        print("❌ Invalid choice. Keeping model: " .. current_model)
+      end
+    end
+
     cc.setup({
       adapters = {
         openai = function()
@@ -17,18 +44,23 @@ return {
             },
             opts = {
               stream = true,
-              -- tools = {
-              --   {
-              --     type = "mcp",
-              --     server_label = "deepwiki",
-              --     server_url = "https://mcp.deepwiki.com/mcp",
-              --   },
-              -- },
+              tools = {
+                {
+                  type = "mcp",
+                  server_label = "deepwiki",
+                  server_url = "https://mcp.deepwiki.com/mcp",
+                },
+                {
+                  type = "mcp",
+                  server_label = "github",
+                  server_url = "https://mcp.github.com/mcp",
+                },
+              },
             },
             schema = {
               model = {
                 default = function()
-                  return "gpt-4o"
+                  return current_model
                 end,
               },
             },
@@ -58,13 +90,14 @@ return {
     keymap("n", "<leader>ii", function()
       cc.inline({})
     end, { desc = "Trigger CodeCompanion Inline (Copilot)" })
-
     keymap("n", "<leader>ic", function()
       cc.chat()
     end, { desc = "Trigger CodeCompanion Chat (OpenAI)" })
-
     keymap("n", "<leader>it", function()
       cc.toggle()
     end, { desc = "Toggle CodeCompanion Panel" })
+    keymap("n", "<leader>im", function()
+      choose_model()
+    end, { desc = "📦 Choose OpenAI model" })
   end,
 }
