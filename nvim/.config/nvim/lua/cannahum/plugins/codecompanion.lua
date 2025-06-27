@@ -44,18 +44,6 @@ Enter choice [1-4]: ]])
             },
             opts = {
               stream = true,
-              tools = {
-                {
-                  type = "mcp",
-                  server_label = "deepwiki",
-                  server_url = "https://mcp.deepwiki.com/mcp",
-                },
-                {
-                  type = "mcp",
-                  server_label = "github",
-                  server_url = "https://mcp.github.com/mcp",
-                },
-              },
             },
             schema = {
               model = {
@@ -78,10 +66,20 @@ Enter choice [1-4]: ]])
       },
       strategies = {
         chat = {
-          adapter = "openai", -- Chat uses GPT-4o
+          adapter = "copilot", -- Chat uses GPT-4o
         },
         inline = {
           adapter = "copilot", -- Inline completions from Copilot
+        },
+      },
+      extensions = {
+        mcphub = {
+          callback = "mcphub.extensions.codecompanion",
+          opts = {
+            show_results_in_chat = true, -- Show MCP results in chat
+            make_vars = true, -- Convert resources to #variables
+            make_slash_commands = true, -- Add prompts as /slash commands
+          },
         },
       },
     })
