@@ -1,17 +1,10 @@
 {
   "mcpServers": {
     "sequential-thinking": {
-      "disabled_tools": [
-        
-      ],
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
+      "disabled_tools": [],
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
       "command": "npx"
     }
   },
-  "nativeMCPServers": [
-    
-  ]
+  "nativeMCPServers": []
 }
