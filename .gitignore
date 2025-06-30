@@ -5,4 +5,4 @@ iterm2
 tmux/plugins
 alacritty/themes
 thefuck
-**/.mcphub
+**/mcphub/servers.json

@@ -1,5 +1,6 @@
 return {
   "olimorris/codecompanion.nvim",
+  enabled = false,
   lazy = false,
   dependencies = {
     "nvim-lua/plenary.nvim",
@@ -17,7 +18,6 @@ return {
         ["3"] = "gpt-4.1",
         ["4"] = "gpt-3.5-turbo",
       }
-
       local choice = vim.fn.input([[
 Choose OpenAI model:
 1. gpt-4o
@@ -25,7 +25,6 @@ Choose OpenAI model:
 3. gpt-4.1
 4. gpt-3.5-turbo
 Enter choice [1-4]: ]])
-
       if models[choice] then
         current_model = models[choice]
         print("✅ Model set to: " .. current_model)
@@ -66,7 +65,7 @@ Enter choice [1-4]: ]])
       },
       strategies = {
         chat = {
-          adapter = "copilot", -- Chat uses GPT-4o
+          adapter = "openai", -- Chat uses GPT-4o
         },
         inline = {
           adapter = "copilot", -- Inline completions from Copilot
