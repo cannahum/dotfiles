@@ -4,6 +4,10 @@
       "disabled_tools": [],
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
       "command": "npx"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@executeautomation/playwright-mcp-server"]
     }
   },
   "nativeMCPServers": []
