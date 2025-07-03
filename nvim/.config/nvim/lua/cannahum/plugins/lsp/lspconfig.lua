@@ -1,3 +1,110 @@
+-- Shared on_attach function for most servers
+local function default_on_attach(client, bufnr)
+  print(client.name .. " attached to buffer " .. bufnr)
+  local opts = { buffer = bufnr, silent = true }
+  vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+  vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+  vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+end
+-- local common_capabilities = require("cmp_nvim_lsp").default_capabilities()
+local common_capabilities = vim.lsp.protocol.make_client_capabilities()
+
+vim.lsp.config("lua_ls", {
+  settings = {
+    Lua = {
+      diagnostics = { globals = { "vim" } },
+      completion = { callSnippet = "Replace" },
+    },
+  },
+  on_attach = default_on_attach,
+})
+
+vim.lsp.config("ts_ls", {
+  on_attach = default_on_attach,
+  capabilities = common_capabilities,
+})
+
+vim.lsp.config("gopls", {
+  on_attach = function(client, bufnr)
+    default_on_attach(client, bufnr)
+    local format_sync_grp = vim.api.nvim_create_augroup("goimports", {})
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      pattern = "*.go",
+      callback = function()
+        require("go.format").gofmt() -- gofmt only
+        require("go.format").goimports() -- goimports + gofmt
+      end,
+      group = format_sync_grp,
+    })
+  end,
+})
+
+vim.lsp.config("templ", {
+  on_attach = default_on_attach,
+  capabilities = common_capabilities,
+})
+
+vim.lsp.config("tailwindcss", {
+  on_attach = default_on_attach,
+  capabilities = common_capabilities,
+  filetypes = { "templ", "astro", "javascript", "typescript", "javascriptreact", "typescriptreact", "svelte" },
+  init_options = { userLanguages = { templ = "html" } },
+})
+
+vim.lsp.config("html", {
+  on_attach = default_on_attach,
+  capabilities = common_capabilities,
+  filetypes = { "html", "templ" },
+})
+
+vim.lsp.config("htmx", {
+  on_attach = default_on_attach,
+  capabilities = common_capabilities,
+  filetypes = { "html", "templ", "svelte", "react" },
+})
+
+vim.lsp.config("zls", {
+  cmd = { vim.fn.stdpath("data") .. "/mason/bin/zls" },
+  on_attach = function(client, bufnr)
+    default_on_attach(client, bufnr)
+    client.server_capabilities.documentFormattingProvider = true
+    client.server_capabilities.documentRangeFormattingProvider = true
+    vim.diagnostic.config({ virtual_text = true })
+  end,
+})
+
+vim.lsp.config("svelte", {
+  on_attach = function(client, bufnr)
+    default_on_attach(client, bufnr)
+    -- Notify the svelte server of changes to JS/TS files
+    vim.api.nvim_create_autocmd("BufWritePost", {
+      pattern = { "*.js", "*.ts" },
+      callback = function(ctx)
+        client.notify("$/onDidChangeTsOrJsFile", { uri = vim.uri_from_bufnr(ctx.buf) })
+      end,
+    })
+  end,
+  capabilities = common_capabilities,
+})
+
+vim.lsp.config("graphql", {
+  on_attach = default_on_attach,
+  capabilities = common_capabilities,
+  filetypes = { "graphql", "graphqls", "gql", "svelte", "typescriptreact", "javascriptreact" },
+})
+
+vim.lsp.config("emmet_ls", {
+  on_attach = default_on_attach,
+  capabilities = common_capabilities,
+  filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
+})
+
+vim.lsp.config("kotlin_language_server", {
+  capabilities = common_capabilities,
+  on_attach = default_on_attach,
+  filetypes = { "kt", "kts", "kotlin" },
+})
+
 return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
@@ -7,9 +114,7 @@ return {
     { "folke/neodev.nvim", opts = {} },
   },
   config = function()
-    local lspconfig = require("lspconfig")
     local mason_lspconfig = require("mason-lspconfig")
-    local cmp_nvim_lsp = require("cmp_nvim_lsp")
     local keymap = vim.keymap -- for conciseness
     vim.filetype.add({ extension = { templ = "templ" } })
     vim.api.nvim_create_autocmd("LspAttach", {
@@ -47,7 +152,6 @@ return {
         keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts) -- mapping to restart lsp if necessary
       end,
     })
-    local capabilities = cmp_nvim_lsp.default_capabilities()
     mason_lspconfig.setup({
       ensure_installed = {
         "cmake",
@@ -77,136 +181,6 @@ return {
         "ts_ls",
         "yamlls",
         "zls",
-      },
-      handlers = {
-        -- default handler for installed servers
-        function(server_name)
-          lspconfig[server_name].setup({
-            capabilities = capabilities,
-          })
-        end,
-        ["gopls"] = function()
-          lspconfig["gopls"].setup({
-            capabilities = capabilities,
-            on_attach = function(client, bufnr)
-              local format_sync_grp = vim.api.nvim_create_augroup("goimports", {})
-              vim.api.nvim_create_autocmd("BufWritePre", {
-                pattern = "*.go",
-                callback = function()
-                  require("go.format").gofmt() -- gofmt only
-                  require("go.format").goimports() -- goimports + gofmt
-                end,
-                group = format_sync_grp,
-              })
-            end,
-          })
-        end,
-        ["templ"] = function()
-          lspconfig["templ"].setup({
-            on_attach = on_attach,
-            capabilities = capabilities,
-          })
-        end,
-        ["tailwindcss"] = function()
-          lspconfig["tailwindcss"].setup({
-            capabilities = capabilities,
-            filetypes = { "templ", "astro", "javascript", "typescript", "react", "svelte" },
-            init_options = { userLanguages = { templ = "html" } },
-          })
-        end,
-        ["html"] = function()
-          lspconfig["html"].setup({
-            on_attach = on_attach,
-            capabilities = capabilities,
-            filetypes = { "html", "templ" },
-          })
-        end,
-        ["htmx"] = function()
-          lspconfig["htmx"].setup({
-            on_attach = on_attach,
-            capabilities = capabilities,
-            filetypes = { "html", "templ" },
-          })
-        end,
-        ["svelte"] = function()
-          -- configure svelte server
-          lspconfig["svelte"].setup({
-            capabilities = capabilities,
-            on_attach = function(client, bufnr)
-              vim.api.nvim_create_autocmd("BufWritePost", {
-                pattern = { "*.js", "*.ts" },
-                callback = function(ctx)
-                  -- Here use ctx.match instead of ctx.file
-                  client.notify("$/onDidChangeTsOrJsFile", { uri = ctx.match })
-                end,
-              })
-            end,
-          })
-        end,
-        ["graphql"] = function()
-          -- configure graphql language server
-          lspconfig["graphql"].setup({
-            capabilities = capabilities,
-            filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
-          })
-        end,
-        ["emmet_ls"] = function()
-          -- configure emmet language server
-          lspconfig["emmet_ls"].setup({
-            capabilities = capabilities,
-            filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
-          })
-        end,
-        ["lua_ls"] = function()
-          -- configure lua server (with special settings)
-          lspconfig["lua_ls"].setup({
-            capabilities = capabilities,
-            settings = {
-              Lua = {
-                -- make the language server recognize "vim" global
-                diagnostics = {
-                  globals = { "vim" },
-                },
-                completion = {
-                  callSnippet = "Replace",
-                },
-              },
-            },
-          })
-        end,
-        ["kotlin_language_server"] = function()
-          lspconfig["kotlin_language_server"].setup({
-            capabilities = capabilities,
-            on_attach = on_attach,
-            filetypes = { "kt", "kts", "kotlin" },
-          })
-        end,
-        ["marksman"] = function() end,
-        ["zls"] = function()
-          lspconfig["zls"].setup({
-            cmd = { vim.fn.stdpath("data") .. "/mason/bin/zls" },
-            on_attach = function(client, bufnr)
-              client.server_capabilities.documentFormattingProvider = true
-              client.server_capabilities.documentRangeFormattingProvider = true
-              vim.diagnostic.config({ virtual_text = true })
-            end,
-          })
-        end,
-        -- Custom handler for `tsserver`
-        ["typescript-language-server"] = function()
-          lspconfig.tsserver.setup({
-            capabilities = capabilities,
-            on_attach = function(client, bufnr)
-              -- Add custom keymaps for tsserver, if needed
-              local opts = { buffer = bufnr, silent = true }
-              vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-              vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-              vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-              -- Optionally, disable formatting if you prefer to use another tool
-              client.server_capabilities.documentFormattingProvider = false
-            end,
-          })
-        end,
       },
     })
   end,
