@@ -4,16 +4,16 @@ return {
     if vim.fn.has("win32") == 1 then
       return "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
     else
-      return "make"
+      return "make BUILD_FROM_SOURCE=true"
     end
   end,
   event = "VeryLazy",
   version = false,
   opts = {
-    provider = "openai",
+    provider = os.getenv("AVANTE_PROVIDER") or "openai",
     providers = {
       openai = {
-        model = os.getenv("AVANTE_MODEL") or "gpt-4o-mini",
+        model = os.getenv("AVANTE_MODEL") or "gpt-4o",
         endpoint = os.getenv("OPENAI_API_BASE") or "https://api.openai.com/v1",
         api_key = os.getenv("OPENAI_API_KEY"),
         timeout = 30000,
@@ -43,6 +43,12 @@ return {
     vim.keymap.set("n", "<leader>it", "<cmd>AvanteChat<CR>", { desc = "Toggle sidebar visibility" })
     vim.keymap.set("n", "<leader>i?", "<cmd>AvanteModels<CR>", { desc = "Select model" })
     vim.keymap.set("n", "<leader>is", "<cmd>AvanteStop<CR>", { desc = "Toggle chat sidebar" })
+    -- 🧠 If no AVANTE_MODEL is set, prompt user to pick one
+    if not os.getenv("AVANTE_MODEL") then
+      vim.schedule(function()
+        vim.cmd("AvanteModels")
+      end)
+    end
   end,
   dependencies = {
     "nvim-lua/plenary.nvim",
