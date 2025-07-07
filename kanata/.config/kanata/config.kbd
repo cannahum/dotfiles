@@ -1,6 +1,12 @@
 (defcfg
   process-unmapped-keys yes
   ;; devices ("/dev/input/by-path/*-kbd")
+  linux-dev-names-exclude (
+    "ZSA Technology Labs Voyager"
+    "ZSA Technology Labs Voyager Keyboard"
+    "ZSA Technology Labs Voyager Consumer Control"
+    "ZSA Technology Labs Voyager System Control"
+  )
 )
 
 (defvar
@@ -11,10 +17,11 @@
 )
 
 (defsrc
-  q w e r t y u i o p lbrc rbrc
-  a s d f g h j k l scln
-  z x c v b n m comm . /
-  lalt ralt
+  esc 1 2 3 4 5 6 7 8 9 0 -
+  tab q w e r t y u i o p \
+  caps a s d f g h j k l ; '
+  lsft z x c v b n m , . / rsft
+    lmeta lalt ralt prtsc
 )
 
 (defalias
@@ -28,13 +35,10 @@
   l-mod (tap-hold $tt $th l rsft)
   semi-mod (tap-hold $tt $th scln rctl)
 
-  n-num (tap-hold $tt $th n (layer-while-held layer1))
-  m-sym (tap-hold $tt $th m (layer-while-held layer2)) 
-  b-num (tap-hold $tt $th b (layer-while-held layer1))
-  v-sym (tap-hold $tt $th v (layer-while-held layer2)) 
-
-  lalt-nav (tap-hold $tt $th lalt (layer-while-held nav))
-  ralt-nav (tap-hold $tt $th ralt (layer-while-held nav))
+  spcnum (tap-hold $tt $th spc (layer-while-held nums))
+  tabnav (tap-hold $tt $th tab (layer-while-held nav)) 
+  bspcnum (tap-hold $tt $th bspc (layer-while-held nums))
+  retnav (tap-hold $tt $th ret (layer-while-held nav))
 
   nav-1 (multi rmet 1)
   nav-2 (multi rmet 2)
@@ -55,32 +59,62 @@
   moveto-7 (multi lmet lsft 7)
   moveto-8 (multi lmet lsft 8)
   moveto-9 (multi lmet lsft 9)
+
+  numlockmousekey
+  (tap-hold $tt $th
+    (layer-switch numlock)
+    (layer-while-held simplemouse)) 
+
+  nav-key (layer-switch nav)
+  base-switch (layer-switch base)
+
+  mouse-up     (movemouse-up 1 1)
+  mouse-down   (movemouse-down 1 1)
+  mouse-left   (movemouse-left 1 1)
+  mouse-right  (movemouse-right 1 1)
+
+  wheel-up     (mwheel-up 1 1)
+  wheel-down   (mwheel-down 1 1)
+  wheel-left   (mwheel-left 1 1)
+  wheel-right  (mwheel-right 1 1)
 )
 
 (deflayer base
-  q w e r t y u i o p lbrc rbrc
-  @a-mod @s-mod @d-mod @f-mod g h @j-mod @k-mod @l-mod @semi-mod
-  z x c @v-sym @b-num @n-num @m-sym comm . /
-  @lalt-nav @ralt-nav
+  esc mute vold volu brdn brup prev pp pp next _ @nav-key
+  ` q w e r t y u i o p \
+  (caps-word 2000) @a-mod @s-mod @d-mod @f-mod g h @j-mod @k-mod @l-mod @semi-mod '
+  @numlockmousekey z x c v b n m comm . / @numlockmousekey
+    @spcnum @tabnav @retnav @bspcnum
 )
 
-(deflayer layer1
-  1 2 3 4 5 6 7 8 9 0 min eql
-  a s d f g h j k l scln
-  z x c v b n m comm . /
-  lmet lmet 
-)
-
-(deflayer layer2
-  S-1 S-2 S-3 S-4 S-5 S-6 S-7 S-8 S-9 S-0 S-- +
-  a s d f g h j k l scln
-  z x c v b n m comm . /
-  lmet lmet
+(deflayer nums
+  f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12
+  _ S-1 S-2 S-3 S-4 S-5 S-6 S-7 S-8 S-9 S-0 _
+  _ 1 2 3 4 5 6 7 8 9 0 _
+  _ - S-- S-= = _ _ S-lbrc S-rbrc lbrc rbrc _
+      _ _ _ _
 )
 
 (deflayer nav
-  @nav-1 @nav-2 @nav-3 @nav-4 @nav-5 @nav-6 @nav-7 @nav-8 @nav-9 0 min eql
-  a s d f g left down up right scln
-  @moveto-1 @moveto-2 @moveto-3 @moveto-4 @moveto-5 @moveto-6 @moveto-7 @moveto-8 @moveto-9 /
-  lalt ralt
+ _ _ _ _ _ _ _ _ _ _ _ _
+ _ @nav-1 @nav-2 @nav-3 @nav-4 @nav-5 @nav-6 @nav-7 @nav-8 @nav-9 _ _
+ _ _ _ _ _ _ left down up right _ _
+ _ @moveto-1 @moveto-2 @moveto-3 @moveto-4 @moveto-5 @moveto-6 @moveto-7 @moveto-8 @moveto-9 _ _
+      _ _ _ _
+ )
+
+(deflayer numlock
+  @base-switch _ _ _ _ _ _ _ _ _ _ @base-switch
+  _ S-0 7 8 9 - S-0 7 8 9 - _
+  _ S-9 4 5 6 S-= S-9 4 5 6 S-= _
+  _ 0 1 2 3 = 0 1 2 3 = _
+      _ _ _ _
+)
+
+(deflayer simplemouse
+  @base-switch _ _ _ _ _ _ _ _ _ _ _
+  _ _ _ _ _ _ @wheel-left @wheel-up @wheel-down @wheel-right _ _
+  _ _ _ _ _ _ @mouse-left @mouse-down @mouse-up @mouse-right _ _
+  _ _ _ _ _ _ _ _ _ _ _ _
+      _ (tap-hold $tt $th mltp mlft) mrtp mmtp
 )
