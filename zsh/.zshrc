@@ -22,8 +22,10 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 fi
 
 # Powerlevel10k theme
-if [[ -n "$BREW_PREFIX" ]]; then
+if [[ -r "$BREW_PREFIX/share/powerlevel10k/powerlevel10k.zsh-theme" ]]; then
   source "$BREW_PREFIX/share/powerlevel10k/powerlevel10k.zsh-theme"
+elif [[ -r "/usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme" ]]; then
+  source "/usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme"
 fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
@@ -47,9 +49,16 @@ bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
 
 # Brew-based plugins
-if [[ -n "$BREW_PREFIX" ]]; then
+if [[ -r "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
   source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+elif [[ -r "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
+fi
+
+if [[ -r "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
   source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+elif [[ -r "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+  source "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 fi
 
 # ---- FZF ----
@@ -91,8 +100,13 @@ alias cd="z"
 
 # NVM (Node Version Manager)
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+if [[ -s "/usr/share/nvm/init-nvm.sh" ]]; then
+  # Arch Linux: system-wide install
+  source /usr/share/nvm/init-nvm.sh
+elif [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  source "$NVM_DIR/nvm.sh"  # This loads nvm
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+fi
 
 # PNPM
 if [[ "$OSTYPE" == "darwin"* ]]; then
