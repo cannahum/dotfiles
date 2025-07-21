@@ -92,7 +92,7 @@ export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
 export BAT_THEME=tokyonight_night
 
 # ---- Eza (better ls) -----
-alias ls="eza --icons=always --color=always --long --git --no-filesize --no-time --no-user --no-permissions"
+alias ls="eza --icons=always --color=always --long --git --no-time --no-user"
 
 # ---- Zoxide (better cd) ----
 eval "$(zoxide init zsh)"
@@ -146,3 +146,7 @@ if command -v temporal &> /dev/null; then
 fi
 
 [ -f ~/.zshrc_local ] && source ~/.zshrc_local
+
+# [[ -s "/home/cannahum/.gvm/scripts/gvm" ]] && source "/home/cannahum/.gvm/scripts/gvm"
+
+export EDITOR=nvim
