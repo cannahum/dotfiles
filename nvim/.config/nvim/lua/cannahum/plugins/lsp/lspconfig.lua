@@ -99,10 +99,28 @@ vim.lsp.config("emmet_ls", {
   filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
 })
 
-vim.lsp.config("kotlin_language_server", {
-  capabilities = common_capabilities,
+local lspconfig = require("lspconfig")
+local configs = require("lspconfig.configs")
+if not configs.kotlin_lsp then
+  configs.kotlin_lsp = {
+    default_config = {
+      cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
+      filetypes = { "kt", "kts", "kotlin" },
+      root_dir = lspconfig.util.root_pattern(
+        "settings.gradle.kts",
+        "settings.gradle",
+        "pom.xml",
+        "build.gradle.kts",
+        "build.gradle",
+        ".git"
+      ),
+      single_file_support = true,
+    },
+  }
+end
+lspconfig.kotlin_lsp.setup({
   on_attach = default_on_attach,
-  filetypes = { "kt", "kts", "kotlin" },
+  capabilities = common_capabilities,
 })
 
 return {
