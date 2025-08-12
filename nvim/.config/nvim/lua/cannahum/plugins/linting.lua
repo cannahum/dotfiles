@@ -3,13 +3,27 @@ return {
   event = { "BufReadPre", "BufNewFile" },
   config = function()
     local lint = require("lint")
+    local biome = require("cannahum.utils.biome")
+    local use_biome = biome.has_biome_config()
+
+    lint.linters.biome = {
+      cmd = "biome",
+      stdin = false,
+      args = { "check", "--formatter", "json", "$FILENAME" },
+      stream = "stdout",
+      ignore_exitcode = true,
+      parser = require("lint.parser").from_errorformat("%f:%l:%c %trror %m", {
+        source = "biome",
+        severity = vim.diagnostic.severity.ERROR,
+      }),
+    }
 
     lint.linters_by_ft = {
-      javascript = { "eslint_d" },
-      typescript = { "eslint_d" },
-      javascriptreact = { "eslint_d" },
-      typescriptreact = { "eslint_d" },
-      svelte = { "eslint_d" },
+      javascript = { use_biome and "biome" or "eslint_d" },
+      typescript = { use_biome and "biome" or "eslint_d" },
+      javascriptreact = { use_biome and "biome" or "eslint_d" },
+      typescriptreact = { use_biome and "biome" or "eslint_d" },
+      svelte = { use_biome and "biome" or "eslint_d" },
       python = { "pylint" },
     }
 

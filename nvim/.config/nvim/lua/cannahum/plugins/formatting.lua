@@ -3,14 +3,16 @@ return {
   event = { "BufReadPre", "BufNewFile" },
   config = function()
     local conform = require("conform")
+    local biome = require("cannahum.utils.biome")
+    local use_biome = biome.has_biome_config()
 
     conform.setup({
       formatters_by_ft = {
-        javascript = { "prettier" },
-        typescript = { "prettier" },
-        javascriptreact = { "prettier" },
-        typescriptreact = { "prettier" },
-        svelte = { "prettier" },
+        javascript = { use_biome and "biome", "biome-organize-imports" or "prettier" },
+        typescript = { use_biome and "biome", "biome-organize-imports" or "prettier" },
+        javascriptreact = { use_biome and "biome", "biome-organize-imports" or "prettier" },
+        typescriptreact = { use_biome and "biome", "biome-organize-imports" or "prettier" },
+        svelte = { use_biome and "biome", "biome-organize-imports" or "prettier" },
         css = { "prettier" },
         html = { "prettier" },
         json = { "prettier" },
@@ -25,6 +27,12 @@ return {
         sql = { "sql-formatter" },
       },
       formatters = {
+        biome = {
+          command = "biome",
+          args = { "check", "--write", "--stdin-file-path", "$FILENAME" },
+          stdin = true,
+          require_cwd = true, -- only runs if biome.json exists
+        },
         ["sql-formatter"] = {
           command = "sql-formatter",
           args = { "--language", "postgresql" },
@@ -32,7 +40,6 @@ return {
         },
       },
       format_on_save = function(bufnr)
-        -- Disable with a global or buffer-local variable
         if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
           return
         end
