@@ -182,7 +182,6 @@ return {
         "html",
         "htmx",
         "jsonls",
-        "kotlin_language_server",
         "lua_ls",
         "marksman",
         "omnisharp",
