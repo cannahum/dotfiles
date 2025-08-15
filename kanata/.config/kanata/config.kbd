@@ -96,7 +96,7 @@
 )
 
 (deflayer nav
- _ _ _ _ _ _ _ _ _ _ _ _
+ @base-switch _ _ _ _ _ _ _ _ _ _ _
  _ @nav-1 @nav-2 @nav-3 @nav-4 @nav-5 @nav-6 @nav-7 @nav-8 @nav-9 _ _
  _ _ _ _ _ _ left down up right _ _
  _ @moveto-1 @moveto-2 @moveto-3 @moveto-4 @moveto-5 @moveto-6 @moveto-7 @moveto-8 @moveto-9 _ _
