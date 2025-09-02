@@ -45,8 +45,11 @@ setopt hist_ignore_dups
 setopt hist_verify
 
 # Completion using arrow keys (based on history)
-bindkey '^[[A' history-search-backward
-bindkey '^[[B' history-search-forward
+bindkey '^[[A' up-line-or-history
+bindkey '^[[B' down-line-or-history
+# Prefix search on Alt+p / Alt+n
+bindkey '^[p' history-beginning-search-backward
+bindkey '^[n' history-beginning-search-forward
 
 # Brew-based plugins
 if [[ -r "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
