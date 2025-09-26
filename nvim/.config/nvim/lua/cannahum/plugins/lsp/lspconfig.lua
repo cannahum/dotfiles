@@ -100,27 +100,56 @@ vim.lsp.config("emmet_ls", {
 })
 
 local lspconfig = require("lspconfig")
-local configs = require("lspconfig.configs")
-if not configs.kotlin_lsp then
-  configs.kotlin_lsp = {
-    default_config = {
-      cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
-      filetypes = { "kt", "kts", "kotlin" },
-      root_dir = lspconfig.util.root_pattern(
-        "settings.gradle.kts",
-        "settings.gradle",
-        "pom.xml",
-        "build.gradle.kts",
-        "build.gradle",
-        ".git"
-      ),
-      single_file_support = true,
-    },
-  }
+-- local configs = require("lspconfig.configs")
+-- if not configs.kotlin_lsp then
+--   configs.kotlin_lsp = {
+--     default_config = {
+--       cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
+--       filetypes = { "kt", "kts", "kotlin" },
+--       root_dir = lspconfig.util.root_pattern(
+--         "settings.gradle.kts",
+--         "settings.gradle",
+--         "pom.xml",
+--         "build.gradle.kts",
+--         "build.gradle",
+--         ".git"
+--       ),
+--       single_file_support = true,
+--     },
+--   }
+local util = require("lspconfig.util")
+
+-- helper: does PATH contain any of these files?
+local function has_any(path, files)
+  for _, f in ipairs(files) do
+    if vim.loop.fs_stat(util.path.join(path, f)) then
+      return true
+    end
+  end
+  return false
 end
+
+local gradle_files = {
+  "settings.gradle.kts",
+  "settings.gradle",
+  "pom.xml",
+  "build.gradle.kts",
+  "build.gradle",
+}
+
 lspconfig.kotlin_lsp.setup({
   on_attach = default_on_attach,
   capabilities = common_capabilities,
+  filetypes = { "kotlin", "kts" }, -- "kotlin" covers .kt too.
+  root_dir = function(fname)
+    -- climb up; stop if we hit a gradle root
+    return util.search_ancestors(fname, function(path)
+      if has_any(path, gradle_files) then
+        return path
+      end
+    end)
+  end,
+  single_file_support = true,
 })
 
 return {
