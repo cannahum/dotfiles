@@ -4,7 +4,7 @@
   del = branch -D
   cob = checkout -b
   res = !git reset --hard
-  fe = fetch --all --prune
+  fe = fetch --all --tag --prune
   done = !git push origin HEAD
   undo = reset HEAD~1 --mixed
   aliases = config --get-regexp alias
