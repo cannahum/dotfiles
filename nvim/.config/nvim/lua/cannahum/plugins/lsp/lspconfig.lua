@@ -100,25 +100,7 @@ vim.lsp.config("emmet_ls", {
 })
 
 local lspconfig = require("lspconfig")
--- local configs = require("lspconfig.configs")
--- if not configs.kotlin_lsp then
---   configs.kotlin_lsp = {
---     default_config = {
---       cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
---       filetypes = { "kt", "kts", "kotlin" },
---       root_dir = lspconfig.util.root_pattern(
---         "settings.gradle.kts",
---         "settings.gradle",
---         "pom.xml",
---         "build.gradle.kts",
---         "build.gradle",
---         ".git"
---       ),
---       single_file_support = true,
---     },
---   }
 local util = require("lspconfig.util")
-
 -- helper: does PATH contain any of these files?
 local function has_any(path, files)
   for _, f in ipairs(files) do
