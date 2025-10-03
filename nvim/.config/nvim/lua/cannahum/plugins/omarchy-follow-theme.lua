@@ -9,12 +9,44 @@ return {
       local theme_lua = vim.fn.expand(om_dir .. "/theme/neovim.lua")
       local bg_file = vim.fn.expand(om_dir .. "/background")
 
+      -- -------------------------
+      -- Logging
+      -- -------------------------
       local LOG_PATH = vim.fn.stdpath("state") .. "/omarchy-theme.log"
-      local function log(fmt, ...)
-        local msg = os.date("%H:%M:%S ") .. string.format(fmt, ...)
-        -- show in :messages (DEBUG level); adjust level if you want popups
-        pcall(vim.notify, msg, vim.log.levels.DEBUG, { title = "Omarchy · Theme" })
-        -- append to file
+
+      local LEVELS = { error = 1, warn = 2, info = 3, debug = 4, trace = 5 }
+      local LOG_LEVEL = (vim.g.omarchy_theme_log or vim.env.OMARCHY_THEME_LOG or "warn"):lower()
+      if not LEVELS[LOG_LEVEL] then
+        LOG_LEVEL = "warn"
+      end
+
+      local function log(level_or_fmt, maybe_fmt, ...)
+        local level, fmt, args = "debug", level_or_fmt, { ... }
+
+        if LEVELS[level_or_fmt] then
+          level, fmt, args = level_or_fmt, maybe_fmt, { ... }
+        end
+        if not fmt or LEVELS[level] > LEVELS[LOG_LEVEL] then
+          return
+        end
+
+        local msg = os.date("%H:%M:%S ") .. string.format(fmt, unpack(args))
+
+        local notify_level = vim.log.levels.DEBUG
+        if level == "info" then
+          notify_level = vim.log.levels.INFO
+        end
+        if level == "warn" then
+          notify_level = vim.log.levels.WARN
+        end
+        if level == "error" then
+          notify_level = vim.log.levels.ERROR
+        end
+
+        if LEVELS[level] <= LEVELS["warn"] then
+          pcall(vim.notify, msg, notify_level, { title = "Omarchy · Theme" })
+        end
+
         local fd = uv.fs_open(LOG_PATH, "a", 438) -- 0666
         if fd then
           uv.fs_write(fd, msg .. "\n", -1)
@@ -45,7 +77,7 @@ return {
       local function read_colorscheme()
         local data = slurp(theme_lua)
         if not data then
-          log("read_colorscheme: no file")
+          log("trace", "read_colorscheme: no file")
           return nil
         end
         local m = data:match('colorscheme%s*=%s*"([^"]+)"')
@@ -54,26 +86,25 @@ return {
           or data:match("vim%.cmd%.colorscheme%(%s*'([^']+)'%s*%)")
           or data:match('vim%.cmd%(%s*"colorscheme%s+([^"]+)"%s*%)')
           or data:match("vim%.cmd%(%s*'colorscheme%s+([^']+)'%s*%)")
-        log("read_colorscheme -> %s", tostring(m))
+        log("trace", "read_colorscheme -> %s", tostring(m))
         return m
       end
 
       local function read_background()
         local b = slurp(bg_file)
         if not b then
-          log("read_background: no file")
+          log("trace", "read_background: no file")
           return nil
         end
         b = b:gsub("%s+", "")
         if b == "light" or b == "dark" then
-          log("read_background -> %s", b)
+          log("trace", "read_background -> %s", b)
           return b
         end
-        log("read_background: invalid '%s'", b)
+        log("trace", "read_background: invalid '%s'", b)
         return nil
       end
 
-      -- Map colorscheme -> plugin name declared in omarchy-colorschemes.lua
       local known = {
         everforest = "everforest",
         catppuccin = "catppuccin",
@@ -101,11 +132,10 @@ return {
           return
         end
 
-        -- set background first (helps some themes)
         local bg = read_background()
         if bg then
           if vim.o.background ~= bg then
-            log("ensure_and_apply: set background -> %s", bg)
+            log("info", "ensure_and_apply: set background -> %s", bg)
           end
           vim.o.background = bg
         end
@@ -117,26 +147,26 @@ return {
         end
 
         local function apply()
-          log("apply: colorscheme %s (bg=%s)", cs, vim.o.background)
+          log("info", "apply: colorscheme %s (bg=%s)", cs, vim.o.background)
           local ok, err = pcall(vim.cmd.colorscheme, cs)
           if not ok then
-            log("apply: first attempt failed: %s", tostring(err))
+            log("warn", "apply: first attempt failed: %s", tostring(err))
             vim.defer_fn(function()
               local ok2, err2 = pcall(vim.cmd.colorscheme, cs)
               if not ok2 then
-                log("apply: second attempt failed: %s", tostring(err2))
+                log("error", "apply: second attempt failed: %s", tostring(err2))
                 vim.notify(
                   ("Failed to set colorscheme '%s': %s"):format(cs, tostring(err2)),
                   vim.log.levels.WARN,
                   { title = "Omarchy · Theme" }
                 )
               else
-                log("apply: second attempt succeeded")
+                log("info", "apply: second attempt succeeded")
                 refresh_statuslines()
               end
             end, 500)
           else
-            log("apply: success")
+            log("info", "apply: success")
             refresh_statuslines()
           end
         end
@@ -145,31 +175,29 @@ return {
       end
 
       local last_key = nil
-
       local function current_key()
         local cs = read_colorscheme() or (vim.g.colors_name or "unknown")
         local bg = (vim.o.background == "light" or vim.o.background == "dark") and vim.o.background or ""
         return ("%s|%s"):format(cs, bg), cs, bg
       end
 
-      local function refresh_statuslines()
-        local ok, lualine = pcall(require, "lualine")
-        if ok then
-          lualine.setup({ options = { theme = "auto" } })
-          lualine.refresh()
-        end
-      end
-
       local function on_theme_change(tag, force)
         local key, cs, bg = current_key()
-        log("on_theme_change%s: key=%s (last=%s) force=%s", tag or "", key, tostring(last_key), tostring(force))
+        log(
+          "debug",
+          "on_theme_change%s: key=%s (last=%s) force=%s",
+          tag or "",
+          key,
+          tostring(last_key),
+          tostring(force)
+        )
         if not force and key == last_key then
-          log("on_theme_change: no-op (unchanged)")
+          log("trace", "on_theme_change: no-op (unchanged)")
           return
         end
         last_key = key
         ensure_and_apply(cs)
-      end -- Wait for Lazy to finish booting before first apply
+      end
 
       vim.api.nvim_create_autocmd("User", {
         pattern = "VeryLazy",
@@ -181,7 +209,6 @@ return {
         end,
       })
 
-      -- Directory watcher (debounced)
       local debounce_ms = 250
       local timer = uv.new_timer()
       local function schedule_rescan()
@@ -199,44 +226,32 @@ return {
         return
       end
 
-      local function normalize_bg(s)
-        if not s then
-          return nil
-        end
-        s = s:gsub("%s+", ""):lower()
-        return (s == "light" or s == "dark") and s or nil
-      end
-
       local function on_change(err, filename, status)
         if err then
           vim.schedule(function()
-            log("fs_event error: %s", err)
+            log("error", "fs_event error: %s", err)
             vim.notify("Watcher error: " .. err, vim.log.levels.ERROR, { title = "Omarchy" })
           end)
           return
         end
 
-        -- Always log what we saw
-        log("fs_event: filename=%s status=%s", tostring(filename), tostring(status))
+        log("trace", "fs_event: filename=%s status=%s", tostring(filename), tostring(status))
 
-        -- If the 'background' file changed, set vim.o.background immediately
         if filename == "background" then
           vim.schedule(function()
             local bg = read_background()
             if bg and vim.o.background ~= bg then
-              log("fs_event: applying background -> %s", bg)
+              log("info", "fs_event: applying background -> %s", bg)
               vim.o.background = bg
             else
-              log("fs_event: background unchanged (vim=%s, file=%s)", tostring(vim.o.background), tostring(bg))
+              log("trace", "fs_event: background unchanged (vim=%s, file=%s)", tostring(vim.o.background), tostring(bg))
             end
-            -- Debounce the theme apply, but FORCE it for bg flips
             schedule_rescan()
             on_theme_change(" (bg file)", true)
           end)
           return
         end
 
-        -- For any other theme file change, just rescan (will no-op if unchanged)
         schedule_rescan()
       end
       local ok, err = handle:start(om_dir, {}, on_change)
@@ -248,7 +263,7 @@ return {
       vim.api.nvim_create_autocmd("OptionSet", {
         pattern = "background",
         callback = function()
-          log("OptionSet(background): vim.o.background=%s", tostring(vim.o.background))
+          log("debug", "OptionSet(background): vim.o.background=%s", tostring(vim.o.background))
           on_theme_change(" (OptionSet)", true)
         end,
       })
