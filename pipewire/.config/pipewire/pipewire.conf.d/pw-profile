@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+case "${1-}" in
+  default)
+    ln -sf ~/.config/pipewire/pipewire.conf.d/10-scarlett-default.conf \
+           ~/.config/pipewire/pipewire.conf.d/10-scarlett.conf
+    ;;
+  guitar-44100)
+    ln -sf ~/.config/pipewire/pipewire.conf.d/90-guitar-44100.conf \
+           ~/.config/pipewire/pipewire.conf.d/10-scarlett.conf
+    ;;
+  guitar-48000)
+    ln -sf ~/.config/pipewire/pipewire.conf.d/90-guitar-48000.conf \
+           ~/.config/pipewire/pipewire.conf.d/10-scarlett.conf
+    ;;
+  low-latency)
+    ln -sf ~/.config/pipewire/pipewire.conf.d/99-lowlatency.conf \
+           ~/.config/pipewire/pipewire.conf.d/10-scarlett.conf
+    ;;
+  *)
+    echo "usage: pw-profile [default|guitar-44100|guitar-48000|low-latency]" >&2
+    exit 2
+    ;;
+esac
+systemctl --user restart pipewire pipewire-pulse
