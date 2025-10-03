@@ -9,6 +9,19 @@ return {
       local theme_lua = vim.fn.expand(om_dir .. "/theme/neovim.lua")
       local bg_file = vim.fn.expand(om_dir .. "/background")
 
+      local LOG_PATH = vim.fn.stdpath("state") .. "/omarchy-theme.log"
+      local function log(fmt, ...)
+        local msg = os.date("%H:%M:%S ") .. string.format(fmt, ...)
+        -- show in :messages (DEBUG level); adjust level if you want popups
+        pcall(vim.notify, msg, vim.log.levels.DEBUG, { title = "Omarchy · Theme" })
+        -- append to file
+        local fd = uv.fs_open(LOG_PATH, "a", 438) -- 0666
+        if fd then
+          uv.fs_write(fd, msg .. "\n", -1)
+          uv.fs_close(fd)
+        end
+      end
+
       if vim.fn.isdirectory(om_dir) == 0 then
         vim.notify("Omarchy not detected; watcher disabled", vim.log.levels.DEBUG, { title = "Omarchy" })
         return
@@ -32,26 +45,31 @@ return {
       local function read_colorscheme()
         local data = slurp(theme_lua)
         if not data then
+          log("read_colorscheme: no file")
           return nil
         end
         local m = data:match('colorscheme%s*=%s*"([^"]+)"')
-        if m then
-          return m
-        end
-        m = data:match('vim%.cmd%.colorscheme%(%s*"([^"]+)"%s*%)')
+          or data:match("colorscheme%s*=%s*'([^']+)'")
+          or data:match('vim%.cmd%.colorscheme%(%s*"([^"]+)"%s*%)')
+          or data:match("vim%.cmd%.colorscheme%(%s*'([^']+)'%s*%)")
           or data:match('vim%.cmd%(%s*"colorscheme%s+([^"]+)"%s*%)')
+          or data:match("vim%.cmd%(%s*'colorscheme%s+([^']+)'%s*%)")
+        log("read_colorscheme -> %s", tostring(m))
         return m
       end
 
       local function read_background()
         local b = slurp(bg_file)
         if not b then
+          log("read_background: no file")
           return nil
         end
         b = b:gsub("%s+", "")
         if b == "light" or b == "dark" then
+          log("read_background -> %s", b)
           return b
         end
+        log("read_background: invalid '%s'", b)
         return nil
       end
 
@@ -69,6 +87,14 @@ return {
         nord = "nord",
       }
 
+      local function refresh_statuslines()
+        local ok, lualine = pcall(require, "lualine")
+        if ok then
+          lualine.setup({ options = { theme = "auto" } })
+          lualine.refresh()
+        end
+      end
+
       local function ensure_and_apply(cs)
         local ok_lazy, Lazy = pcall(require, "lazy")
         if not ok_lazy then
@@ -78,60 +104,73 @@ return {
         -- set background first (helps some themes)
         local bg = read_background()
         if bg then
+          if vim.o.background ~= bg then
+            log("ensure_and_apply: set background -> %s", bg)
+          end
           vim.o.background = bg
         end
         vim.o.termguicolors = true
 
-        -- try to load the matching plugin by name (installs if missing, since it's in spec)
         local plugin_name = known[cs]
         if plugin_name then
           pcall(Lazy.load, { plugins = { plugin_name }, wait = true })
         end
 
-        -- apply now, retry once if it fails (install might still be finishing)
         local function apply()
+          log("apply: colorscheme %s (bg=%s)", cs, vim.o.background)
           local ok, err = pcall(vim.cmd.colorscheme, cs)
           if not ok then
+            log("apply: first attempt failed: %s", tostring(err))
             vim.defer_fn(function()
               local ok2, err2 = pcall(vim.cmd.colorscheme, cs)
               if not ok2 then
+                log("apply: second attempt failed: %s", tostring(err2))
                 vim.notify(
                   ("Failed to set colorscheme '%s': %s"):format(cs, tostring(err2)),
                   vim.log.levels.WARN,
                   { title = "Omarchy · Theme" }
                 )
               else
-                vim.notify(
-                  ("Applied colorscheme '%s' after install"):format(cs),
-                  vim.log.levels.INFO,
-                  { title = "Omarchy · Theme" }
-                )
+                log("apply: second attempt succeeded")
+                refresh_statuslines()
               end
             end, 500)
           else
-            vim.notify(("Applied colorscheme '%s'"):format(cs), vim.log.levels.INFO, { title = "Omarchy · Theme" })
+            log("apply: success")
+            refresh_statuslines()
           end
         end
 
         apply()
       end
 
-      local last_cs = nil
-      local function on_theme_change(tag)
+      local last_key = nil
+
+      local function current_key()
         local cs = read_colorscheme() or (vim.g.colors_name or "unknown")
-        if cs == last_cs then
-          return
-        end
-        last_cs = cs
-        vim.notify(
-          ("Omarchy theme%s → %s"):format(tag or "", cs),
-          vim.log.levels.INFO,
-          { title = "Omarchy · Theme" }
-        )
-        ensure_and_apply(cs)
+        local bg = (vim.o.background == "light" or vim.o.background == "dark") and vim.o.background or ""
+        return ("%s|%s"):format(cs, bg), cs, bg
       end
 
-      -- Wait for Lazy to finish booting before first apply
+      local function refresh_statuslines()
+        local ok, lualine = pcall(require, "lualine")
+        if ok then
+          lualine.setup({ options = { theme = "auto" } })
+          lualine.refresh()
+        end
+      end
+
+      local function on_theme_change(tag, force)
+        local key, cs, bg = current_key()
+        log("on_theme_change%s: key=%s (last=%s) force=%s", tag or "", key, tostring(last_key), tostring(force))
+        if not force and key == last_key then
+          log("on_theme_change: no-op (unchanged)")
+          return
+        end
+        last_key = key
+        ensure_and_apply(cs)
+      end -- Wait for Lazy to finish booting before first apply
+
       vim.api.nvim_create_autocmd("User", {
         pattern = "VeryLazy",
         once = true,
@@ -160,30 +199,59 @@ return {
         return
       end
 
+      local function normalize_bg(s)
+        if not s then
+          return nil
+        end
+        s = s:gsub("%s+", ""):lower()
+        return (s == "light" or s == "dark") and s or nil
+      end
+
       local function on_change(err, filename, status)
         if err then
           vim.schedule(function()
+            log("fs_event error: %s", err)
             vim.notify("Watcher error: " .. err, vim.log.levels.ERROR, { title = "Omarchy" })
           end)
           return
         end
-        schedule_rescan()
+
+        -- Always log what we saw
+        log("fs_event: filename=%s status=%s", tostring(filename), tostring(status))
+
+        -- If the 'background' file changed, set vim.o.background immediately
         if filename == "background" then
           vim.schedule(function()
             local bg = read_background()
-            if bg then
+            if bg and vim.o.background ~= bg then
+              log("fs_event: applying background -> %s", bg)
               vim.o.background = bg
+            else
+              log("fs_event: background unchanged (vim=%s, file=%s)", tostring(vim.o.background), tostring(bg))
             end
-            vim.notify("Omarchy background changed", vim.log.levels.DEBUG, { title = "Omarchy · Background" })
+            -- Debounce the theme apply, but FORCE it for bg flips
+            schedule_rescan()
+            on_theme_change(" (bg file)", true)
           end)
+          return
         end
-      end
 
+        -- For any other theme file change, just rescan (will no-op if unchanged)
+        schedule_rescan()
+      end
       local ok, err = handle:start(om_dir, {}, on_change)
       if not ok then
         vim.notify("Failed to start watcher: " .. tostring(err), vim.log.levels.ERROR, { title = "Omarchy" })
         return
       end
+
+      vim.api.nvim_create_autocmd("OptionSet", {
+        pattern = "background",
+        callback = function()
+          log("OptionSet(background): vim.o.background=%s", tostring(vim.o.background))
+          on_theme_change(" (OptionSet)", true)
+        end,
+      })
 
       vim.api.nvim_create_autocmd("VimLeavePre", {
         group = vim.api.nvim_create_augroup("OmarchyWatcher", { clear = true }),
