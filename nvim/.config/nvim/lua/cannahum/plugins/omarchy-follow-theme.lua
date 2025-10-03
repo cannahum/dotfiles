@@ -10,7 +10,7 @@ return {
       local bg_file = vim.fn.expand(om_dir .. "/background")
 
       -- -------------------------
-      -- Logging
+      -- Logging -- example use: OMARCHY_THEME_LOG=debug nvim
       -- -------------------------
       local LOG_PATH = vim.fn.stdpath("state") .. "/omarchy-theme.log"
 
