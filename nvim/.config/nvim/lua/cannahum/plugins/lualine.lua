@@ -11,6 +11,15 @@ return {
         globalstatus = true, -- single statusline (nice)
       },
       sections = {
+        lualine_c = {
+          {
+            "filename",
+            symbols = {
+              modified = " ●", -- Text to show when file is modified
+              readonly = " ",
+            },
+          },
+        },
         lualine_x = {
           {
             lazy_status.updates,
