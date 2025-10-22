@@ -54,11 +54,6 @@ return {
         end
       end
 
-      if vim.fn.isdirectory(om_dir) == 0 then
-        vim.notify("Omarchy not detected; watcher disabled", vim.log.levels.DEBUG, { title = "Omarchy" })
-        return
-      end
-
       local function slurp(path)
         local fd = uv.fs_open(path, "r", 438)
         if not fd then
@@ -131,7 +126,6 @@ return {
         if not ok_lazy then
           return
         end
-
         local bg = read_background()
         if bg then
           if vim.o.background ~= bg then
@@ -140,12 +134,10 @@ return {
           vim.o.background = bg
         end
         vim.o.termguicolors = true
-
         local plugin_name = known[cs]
         if plugin_name then
           pcall(Lazy.load, { plugins = { plugin_name }, wait = true })
         end
-
         local function apply()
           log("info", "apply: colorscheme %s (bg=%s)", cs, vim.o.background)
           local ok, err = pcall(vim.cmd.colorscheme, cs)
@@ -170,7 +162,6 @@ return {
             refresh_statuslines()
           end
         end
-
         apply()
       end
 
@@ -197,6 +188,15 @@ return {
         end
         last_key = key
         ensure_and_apply(cs)
+      end
+
+      if vim.fn.isdirectory(om_dir) == 0 then
+        vim.notify(
+          "Omarchy not detected; falling back to catppuccin colorsheme",
+          vim.log.levels.INFO,
+          { title = "Omarchy" }
+        )
+        ensure_and_apply("catppuccin")
       end
 
       vim.api.nvim_create_autocmd("User", {
