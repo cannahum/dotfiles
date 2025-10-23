@@ -98,10 +98,31 @@ vim.lsp.config("emmet_ls", {
   capabilities = common_capabilities,
   filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
 })
--- ATTEMPT 6 - single client
+
 -- Kotlin LSP Configuration - ONE CLIENT PER NEOVIM INSTANCE
 local util = require("lspconfig.util")
 local kotlin_client_id = nil -- Only ONE client per neovim instance
+-- Helper: find the OUTERMOST Gradle root
+local function find_gradle_root(path)
+  local last_root = nil
+  local current = util.path.dirname(path)
+  while current and #curent > 1 do
+    local settings = util.path.join(current, "settings.gradle.kts")
+    local settings_alt = util.path.join(current, "settings.gradle")
+    local build = util.path.join(current, "build.gradle.kts")
+    local build_alt = util.path.join(current, "build.gradle")
+    if
+      vim.loop.fs_stat(settings)
+      or vim.loop.fs_stat(settings_alt)
+      or vim.loop.fs_stat(build)
+      or vim.loop.fs_stat(build_alt)
+    then
+      last_root = current
+    end
+    current = util.path.dirname(current)
+  end
+  return last_root
+end
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "kotlin",
@@ -117,13 +138,19 @@ vim.api.nvim_create_autocmd("FileType", {
       end
     end
     local bufname = vim.api.nvim_buf_get_name(ev.buf)
-    -- Find the TOP-LEVEL monorepo root
-    local root = util.root_pattern("settings.gradle.kts", "settings.gradle")(bufname) or vim.fn.getcwd()
-    -- Start ONE client for this neovim instance
+    local root = find_gradle_root(bufname) or vim.fn.getcwd()
+    -- give kotlin-lsp its own Gradle home to avoid global ~/.gradle locks
+    local gradle_home = vim.fn.stdpath("data") .. "/kotlin-lsp-gradle-home"
+    vim.fn.mkdir(gradle_home, "p")
+    -- start the lsp
     kotlin_client_id = vim.lsp.start({
       name = "kotlin_lsp",
       cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
       root_dir = root,
+      cmd_env = {
+        GRADLE_USER_HOME = gradle_home,
+        -- JAVA_HOME = "path/to/java17", -- uncomment if your default Java < 17
+      },
     })
   end,
 })
@@ -138,291 +165,7 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
     end
   end,
 })
--- ATTEMPT 5 based on 4
--- Kotlin LSP Configuration
--- local util = require("lspconfig.util")
--- local active_clients = {} -- Track clients by root_dir to avoid duplicates
---
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern = "kotlin",
---   callback = function(ev)
---     local bufname = vim.api.nvim_buf_get_name(ev.buf)
---
---     -- Find the nearest Gradle project root
---     local root =
---       util.root_pattern("settings.gradle.kts", "settings.gradle", "build.gradle.kts", "build.gradle")(bufname)
---
---     if not root then
---       root = vim.fn.getcwd()
---     end
---
---     -- Check if we already have a client for this root
---     if active_clients[root] then
---       -- Client exists, just attach this buffer to it
---       vim.lsp.buf_attach_client(ev.buf, active_clients[root])
---       return
---     end
---
---     -- Start new client for this root
---     local client_id = vim.lsp.start({
---       name = "kotlin_lsp",
---       cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
---       root_dir = root,
---     })
---
---     if client_id then
---       active_clients[root] = client_id
---     end
---   end,
--- })
---
--- -- Clean up tracking when clients stop
--- vim.api.nvim_create_autocmd("LspDetach", {
---   callback = function(args)
---     for root, client_id in pairs(active_clients) do
---       if client_id == args.data.client_id then
---         active_clients[root] = nil
---         break
---       end
---     end
---   end,
--- })
--- ATTEMPT 4 - worked!
--- vim.lsp.config("kotlin_lsp", {
---   cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
---   filetypes = { "kotlin" },
---   root_dir = vim.fn.getcwd, -- Just use current working directory
--- })
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern = "kotlin",
---   callback = function()
---     vim.lsp.start({
---       name = "kotlin_lsp",
---       cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
---       root_dir = vim.fn.getcwd(),
---     })
---   end,
--- })
--- ATTEMPT 3
--- KOTLIN LSP WITH LOGGING
--- vim.notify("=== LOADING KOTLIN CONFIG ===", vim.log.levels.INFO)
---
--- local util = require("lspconfig.util")
--- local mason_bin = vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp"
--- vim.notify("mason_bin set to: " .. mason_bin, vim.log.levels.INFO)
---
--- local function has_any(dir, names)
---   vim.notify("has_any called for dir: " .. dir, vim.log.levels.DEBUG)
---   for _, n in ipairs(names) do
---     if util.path.exists(util.path.join(dir, n)) then
---       vim.notify("Found file: " .. n, vim.log.levels.DEBUG)
---       return true
---     end
---   end
---   return false
--- end
---
--- local gradle_files = {
---   "settings.gradle.kts",
---   "settings.gradle",
---   "build.gradle.kts",
---   "build.gradle",
--- }
---
--- vim.notify("=== CALLING vim.lsp.config for kotlin_lsp ===", vim.log.levels.INFO)
--- vim.lsp.config("kotlin_lsp", {
---   cmd = { mason_bin, "--stdio" },
---   filetypes = { "kotlin" },
---   single_file_support = true,
---   root_dir = function(fname)
---     vim.notify("root_dir called with fname: " .. tostring(fname), vim.log.levels.INFO)
---
---     if type(fname) == "number" then
---       fname = vim.api.nvim_buf_get_name(fname)
---       vim.notify("fname was number, converted to: " .. fname, vim.log.levels.INFO)
---     end
---
---     local root = util.search_ancestors(fname, function(path)
---       if has_any(path, gradle_files) then
---         return path
---       end
---     end)
---
---     if not root and fname ~= "" then
---       root = vim.fn.fnamemodify(fname, ":h")
---       vim.notify("Using fallback root: " .. root, vim.log.levels.INFO)
---     end
---
---     local final_root = root or vim.fn.getcwd()
---     vim.notify("Final root_dir: " .. final_root, vim.log.levels.INFO)
---     return final_root
---   end,
---   on_attach = function(client, bufnr)
---     vim.notify(
---       "=== KOTLIN LSP ON_ATTACH CALLED === client: " .. client.name .. " bufnr: " .. bufnr,
---       vim.log.levels.WARN
---     )
---     default_on_attach(client, bufnr)
---   end,
---   capabilities = common_capabilities,
--- })
--- vim.notify("=== vim.lsp.config DONE ===", vim.log.levels.INFO)
---
--- vim.notify("=== CREATING AUTOCMD ===", vim.log.levels.INFO)
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern = { "kotlin" },
---   callback = function(ev)
---     vim.notify(
---       "=== AUTOCMD FIRED === buffer: " .. ev.buf .. " filetype: " .. vim.bo[ev.buf].filetype,
---       vim.log.levels.WARN
---     )
---
---     if vim.fn.executable(mason_bin) == 0 then
---       vim.notify("kotlin-lsp not executable at " .. mason_bin, vim.log.levels.ERROR)
---       return
---     end
---
---     vim.notify("About to call vim.lsp.enable", vim.log.levels.WARN)
---     vim.lsp.enable("kotlin_lsp")
---     vim.notify("vim.lsp.enable returned", vim.log.levels.WARN)
---   end,
--- })
--- vim.notify("=== AUTOCMD CREATED ===", vim.log.levels.INFO)
 
--- ATTEMPT 2
--- local util = require("lspconfig.util")
--- local mason_bin = vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp"
--- local function has_any(dir, names)
---   for _, n in ipairs(names) do
---     if util.path.exists(util.path.join(dir, n)) then
---       return true
---     end
---   end
---   return false
--- end
--- local gradle_files = {
---   "settings.gradle.kts",
---   "settings.gradle",
---   "build.gradle.kts",
---   "build.gradle",
--- }
--- vim.lsp.config("kotlin_lsp", {
---   cmd = { mason_bin, "--stdio" },
---   filetypes = { "kotlin" },
---   single_file_support = true,
---   root_dir = function(fname)
---     if type(fname) == "number" then
---       fname = vim.api.nvim_buf_get_name(fname)
---     end
---     local root = util.search_ancestors(fname, function(path)
---       if has_any(path, gradle_files) then
---         return path
---       end
---     end)
---     if not root and fname ~= "" then
---       root = vim.fn.fnamemodify(fname, ":h")
---     end
---     return root or vim.fn.getcwd()
---   end,
---   on_attach = default_on_attach,
---   capabilities = common_capabilities,
--- })
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern = { "kotlin" },
---   callback = function(ev)
---     if vim.fn.executable(mason_bin) == 0 then
---       vim.notify("kotlin-lsp not executable at " .. mason_bin, vim.log.levels.ERROR)
---       return
---     end
---     vim.lsp.enable("kotlin_lsp")
---   end,
--- })
---
--- ATTEMPT 1
--- local util = require("lspconfig.util")
--- local mason_bin = vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp"
---
--- -- helper: does PATH contain any of these files?
--- local function has_any(dir, names)
---   for _, n in ipairs(names) do
---     if util.path.exists(util.path.join(dir, n)) then
---       return true
---     end
---   end
---   return false -- explicit return
--- end
---
--- local gradle_files = {
---   "settings.gradle.kts",
---   "settings.gradle",
---   "build.gradle.kts",
---   "build.gradle",
--- }
---
--- vim.lsp.config("kotlin_lsp", {
---   cmd = { mason_bin, "--stdio" }, -- Don't forget this!
---   filetypes = { "kotlin" },
---   single_file_support = true,
---   root_dir = function(fname)
---     -- Ensure fname is actually a filename string
---     if type(fname) == "number" then
---       fname = vim.api.nvim_buf_get_name(fname)
---     end
---     local root = util.search_ancestors(fname, function(path)
---       if has_any(path, gradle_files) then
---         return path
---       end
---     end)
---     -- Fallback to the directory containing the file
---     if not root and fname ~= "" then
---       root = vim.fn.fnamemodify(fname, ":h")
---     end
---     return root or vim.fn.getcwd()
---   end,
---   on_attach = default_on_attach,
---   capabilities = common_capabilities,
--- })
---
--- -- Autostart for Kotlin buffers
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern = { "kotlin" },
---   callback = function(ev)
---     -- Guard: warn early if the cmd isn't executable
---     if vim.fn.executable(mason_bin) == 0 then
---       vim.notify("kotlin-lsp not executable at " .. mason_bin, vim.log.levels.ERROR)
---       return
---     end
---
---     vim.notify("Attempting to enable kotlin_lsp for buffer " .. ev.buf, vim.log.levels.INFO)
---     vim.lsp.enable("kotlin_lsp")
---
---     -- Debug: check if client attached after a brief delay
---     vim.defer_fn(function()
---       local clients = vim.lsp.get_clients({ bufnr = ev.buf, name = "kotlin_lsp" })
---       if #clients == 0 then
---         vim.notify("No kotlin_lsp clients attached to buffer!", vim.log.levels.WARN)
---       else
---         vim.notify("Found " .. #clients .. " kotlin_lsp client(s)", vim.log.levels.INFO)
---       end
---     end, 1000)
---   end,
--- })
--- ATTEMPT 0
--- vim.lsp.config("kotlin_lsp", {
---   on_attach = default_on_attach,
---   capabilities = common_capabilities,
---   filetypes = { "kotlin", "kotlin-script", "kts" }, -- "kotlin" covers .kt too
---   root_dir = function(fname)
---     -- climb up; stop if we hit a gradle root
---     return util.search_ancestors(fname, function(path)
---       if has_any(path, gradle_files) then
---         return path
---       end
---     end)
---   end,
---   single_file_support = true,
--- })
---
 return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
