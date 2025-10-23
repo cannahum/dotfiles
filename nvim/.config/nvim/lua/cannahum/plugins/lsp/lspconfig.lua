@@ -98,56 +98,95 @@ vim.lsp.config("emmet_ls", {
   capabilities = common_capabilities,
   filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
 })
-
--- ATTEMPT 5 based on 4
--- Kotlin LSP Configuration
+-- ATTEMPT 6 - single client
+-- Kotlin LSP Configuration - ONE CLIENT PER NEOVIM INSTANCE
 local util = require("lspconfig.util")
-local active_clients = {} -- Track clients by root_dir to avoid duplicates
+local kotlin_client_id = nil -- Only ONE client per neovim instance
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "kotlin",
   callback = function(ev)
+    -- If client already exists, just attach this buffer
+    if kotlin_client_id then
+      local client = vim.lsp.get_client_by_id(kotlin_client_id)
+      if client then
+        vim.lsp.buf_attach_client(ev.buf, kotlin_client_id)
+        return
+      else
+        kotlin_client_id = nil -- Client died, clear it
+      end
+    end
     local bufname = vim.api.nvim_buf_get_name(ev.buf)
-
-    -- Find the nearest Gradle project root
-    local root =
-      util.root_pattern("settings.gradle.kts", "settings.gradle", "build.gradle.kts", "build.gradle")(bufname)
-
-    if not root then
-      root = vim.fn.getcwd()
-    end
-
-    -- Check if we already have a client for this root
-    if active_clients[root] then
-      -- Client exists, just attach this buffer to it
-      vim.lsp.buf_attach_client(ev.buf, active_clients[root])
-      return
-    end
-
-    -- Start new client for this root
-    local client_id = vim.lsp.start({
+    -- Find the TOP-LEVEL monorepo root
+    local root = util.root_pattern("settings.gradle.kts", "settings.gradle")(bufname) or vim.fn.getcwd()
+    -- Start ONE client for this neovim instance
+    kotlin_client_id = vim.lsp.start({
       name = "kotlin_lsp",
       cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
       root_dir = root,
     })
-
-    if client_id then
-      active_clients[root] = client_id
-    end
   end,
 })
 
--- Clean up tracking when clients stop
-vim.api.nvim_create_autocmd("LspDetach", {
-  callback = function(args)
-    for root, client_id in pairs(active_clients) do
-      if client_id == args.data.client_id then
-        active_clients[root] = nil
-        break
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  callback = function()
+    if kotlin_client_id then
+      local client = vim.lsp.get_client_by_id(kotlin_client_id)
+      if client then
+        client.stop()
       end
     end
   end,
 })
+-- ATTEMPT 5 based on 4
+-- Kotlin LSP Configuration
+-- local util = require("lspconfig.util")
+-- local active_clients = {} -- Track clients by root_dir to avoid duplicates
+--
+-- vim.api.nvim_create_autocmd("FileType", {
+--   pattern = "kotlin",
+--   callback = function(ev)
+--     local bufname = vim.api.nvim_buf_get_name(ev.buf)
+--
+--     -- Find the nearest Gradle project root
+--     local root =
+--       util.root_pattern("settings.gradle.kts", "settings.gradle", "build.gradle.kts", "build.gradle")(bufname)
+--
+--     if not root then
+--       root = vim.fn.getcwd()
+--     end
+--
+--     -- Check if we already have a client for this root
+--     if active_clients[root] then
+--       -- Client exists, just attach this buffer to it
+--       vim.lsp.buf_attach_client(ev.buf, active_clients[root])
+--       return
+--     end
+--
+--     -- Start new client for this root
+--     local client_id = vim.lsp.start({
+--       name = "kotlin_lsp",
+--       cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
+--       root_dir = root,
+--     })
+--
+--     if client_id then
+--       active_clients[root] = client_id
+--     end
+--   end,
+-- })
+--
+-- -- Clean up tracking when clients stop
+-- vim.api.nvim_create_autocmd("LspDetach", {
+--   callback = function(args)
+--     for root, client_id in pairs(active_clients) do
+--       if client_id == args.data.client_id then
+--         active_clients[root] = nil
+--         break
+--       end
+--     end
+--   end,
+-- })
 -- ATTEMPT 4 - worked!
 -- vim.lsp.config("kotlin_lsp", {
 --   cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
