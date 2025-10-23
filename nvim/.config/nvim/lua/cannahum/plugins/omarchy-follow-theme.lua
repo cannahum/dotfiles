@@ -197,6 +197,7 @@ return {
           { title = "Omarchy" }
         )
         ensure_and_apply("catppuccin")
+        return
       end
 
       vim.api.nvim_create_autocmd("User", {
