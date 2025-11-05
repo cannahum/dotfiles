@@ -99,14 +99,18 @@ vim.lsp.config("emmet_ls", {
   filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
 })
 
--- Kotlin LSP Configuration - ONE CLIENT PER NEOVIM INSTANCE
+-- Kotlin LSP Configuration - TRUE SINGLETON CLIENT AT MONOREPO ROOT
 local util = require("lspconfig.util")
 local kotlin_client_id = nil -- Only ONE client per neovim instance
+local monorepo_root = nil -- Cache for monorpo root
 -- Helper: find the OUTERMOST Gradle root
 local function find_gradle_root(path)
+  if monorepo_root then
+    return monorepo_root
+  end
   local last_root = nil
   local current = util.path.dirname(path)
-  while current and #curent > 1 do
+  while current and #current > 1 do
     local settings = util.path.join(current, "settings.gradle.kts")
     local settings_alt = util.path.join(current, "settings.gradle")
     local build = util.path.join(current, "build.gradle.kts")
@@ -121,27 +125,41 @@ local function find_gradle_root(path)
     end
     current = util.path.dirname(current)
   end
-  return last_root
+  monorepo_root = last_root
+  pcall(
+    vim.notify,
+    "monorepo_root set to " .. tostring(monorepo_root),
+    vim.log.levels.INFO,
+    { title = "find_gradle_root" }
+  )
+  return monorepo_root
 end
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "kotlin",
   callback = function(ev)
-    -- If client already exists, just attach this buffer
+    -- Always use the cached monorepo root for all buffers
+    local bufname = vim.api.nvim_buf_get_name(ev.buf)
+    local root = find_gradle_root(bufname) or vim.fn.getcwd()
+    -- Attach to singleton client if it exists and is valid
     if kotlin_client_id then
       local client = vim.lsp.get_client_by_id(kotlin_client_id)
-      if client then
+      if client and client.config.root_dir == root then
         vim.lsp.buf_attach_client(ev.buf, kotlin_client_id)
         return
-      else
+      elseif client == nil then
         kotlin_client_id = nil -- Client died, clear it
       end
     end
-    local bufname = vim.api.nvim_buf_get_name(ev.buf)
-    local root = find_gradle_root(bufname) or vim.fn.getcwd()
     -- give kotlin-lsp its own Gradle home to avoid global ~/.gradle locks
     local gradle_home = vim.fn.stdpath("data") .. "/kotlin-lsp-gradle-home"
     vim.fn.mkdir(gradle_home, "p")
+    pcall(
+      vim.notify,
+      "starting singleton kotlin-lsp at " .. root,
+      vim.log.levels.INFO,
+      { title = "Kotlin FileType CB" }
+    )
     -- start the lsp
     kotlin_client_id = vim.lsp.start({
       name = "kotlin_lsp",
