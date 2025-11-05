@@ -10,4 +10,8 @@ return {
   { "dracula/vim", name = "dracula", lazy = true }, -- legacy but works
   { "navarasu/onedark.nvim", name = "onedark", lazy = true },
   { "shaunsingh/nord.nvim", name = "nord", lazy = true },
+  { "kepano/flexoki-neovim", name = "flexoki", lazy = true },
+  { "tahayvr/matteblack.nvim", name = "matte-black", lazy = true },
+  { "craftzdog/solarized-osaka.nvim", name = "osaka-jade", lazy = true },
+  { "loctvl842/monokai-pro.nvim", name = "ristretto", lazy = true },
 }

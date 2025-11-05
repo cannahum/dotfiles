@@ -111,7 +111,68 @@ return {
         dracula = "dracula",
         onedark = "onedark",
         nord = "nord",
+        flexoki = "flexoki",
+        ["matte-black"] = "matte-black",
+        ["osaka-jade"] = "osaka-jade",
+        ristretto = "ristretto",
       }
+
+      -- Normalize Omarchy labels -> colorscheme + optional setup
+      -- (case/space-insensitive; uses your bg file when present)
+      local aliases = {
+        -- From your Omarchy menu
+        ["catppuccin"] = { cs = "catppuccin" },
+        ["catppuccin latte"] = {
+          cs = "catppuccin-latte",
+          setup = function()
+            vim.o.background = "light"
+          end,
+        },
+        ["everforest"] = { cs = "everforest" },
+        ["flexoki light"] = {
+          cs = "flexoki",
+          setup = function()
+            vim.o.background = "light"
+          end,
+        },
+        ["gruvbox"] = { cs = "gruvbox" },
+        ["kanagawa"] = { cs = "kanagawa" },
+        ["matte black"] = { cs = "black" }, -- plugin provides :colorscheme black
+        ["nord"] = { cs = "nord" },
+        ["osaka jade"] = { cs = "solarized-osaka" }, -- theme from craftzdog/solarized-osaka.nvim
+        ["ristretto"] = { cs = "ristretto" },
+        ["rose pine"] = { cs = "rose-pine" },
+        ["tokyo night"] = { cs = "tokyonight" },
+      }
+
+      -- Lowercase + collapse spaces for robust matching
+      local function norm(s)
+        return (s or ""):lower():gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+      end
+
+      -- Apply alias setup (if any) and return final colorscheme name
+      local function resolve_alias_and_setup(cs)
+        local a = aliases[norm(cs)]
+        if a then
+          if type(a.setup) == "function" then
+            pcall(a.setup)
+          end
+          return a.cs
+        end
+        return cs
+      end
+
+      -- Map colorscheme -> key in `known` so Lazy loads the right plugin first
+      local function plugin_key_for(cs)
+        local base = (cs or ""):gsub("%-.*$", "") -- e.g. "catppuccin-latte" -> "catppuccin"
+        if base == "black" then
+          base = "matte-black"
+        end
+        if base == "solarized" or base == "solarized-osaka" then
+          base = "osaka-jade"
+        end
+        return base
+      end
 
       local function refresh_statuslines()
         local ok, lualine = pcall(require, "lualine")
@@ -139,16 +200,25 @@ return {
           pcall(Lazy.load, { plugins = { plugin_name }, wait = true })
         end
         local function apply()
-          log("info", "apply: colorscheme %s (bg=%s)", cs, vim.o.background)
-          local ok, err = pcall(vim.cmd.colorscheme, cs)
+          local target = resolve_alias_and_setup(cs)
+
+          -- ensure plugin is loaded before applying
+          local plugin_key = plugin_key_for(target)
+          local plugin_name = known[plugin_key]
+          if plugin_name then
+            pcall(Lazy.load, { plugins = { plugin_name }, wait = true })
+          end
+
+          log("info", "apply: colorscheme %s (bg=%s)", target, vim.o.background)
+          local ok, err = pcall(vim.cmd.colorscheme, target)
           if not ok then
             log("warn", "apply: first attempt failed: %s", tostring(err))
             vim.defer_fn(function()
-              local ok2, err2 = pcall(vim.cmd.colorscheme, cs)
+              local ok2, err2 = pcall(vim.cmd.colorscheme, target)
               if not ok2 then
                 log("error", "apply: second attempt failed: %s", tostring(err2))
                 vim.notify(
-                  ("Failed to set colorscheme '%s': %s"):format(cs, tostring(err2)),
+                  ("Failed to set colorscheme '%s': %s"):format(target, tostring(err2)),
                   vim.log.levels.WARN,
                   { title = "Omarchy · Theme" }
                 )
@@ -162,6 +232,7 @@ return {
             refresh_statuslines()
           end
         end
+
         apply()
       end
 
