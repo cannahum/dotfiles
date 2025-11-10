@@ -12,6 +12,6 @@ return {
   { "shaunsingh/nord.nvim", name = "nord", lazy = true },
   { "kepano/flexoki-neovim", name = "flexoki", lazy = true },
   { "tahayvr/matteblack.nvim", name = "matte-black", lazy = true },
-  { "craftzdog/solarized-osaka.nvim", name = "osaka-jade", lazy = true },
+  { "ribru17/bamboo.nvim", name = "osaka-jade", lazy = true },
   { "loctvl842/monokai-pro.nvim", name = "ristretto", lazy = true },
 }

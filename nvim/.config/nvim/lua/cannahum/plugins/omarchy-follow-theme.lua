@@ -139,7 +139,7 @@ return {
         ["kanagawa"] = { cs = "kanagawa" },
         ["matte black"] = { cs = "black" }, -- plugin provides :colorscheme black
         ["nord"] = { cs = "nord" },
-        ["osaka jade"] = { cs = "solarized-osaka" }, -- theme from craftzdog/solarized-osaka.nvim
+        ["bamboo"] = { cs = "solarized-osaka" }, -- theme from craftzdog/solarized-osaka.nvim
         ["ristretto"] = { cs = "ristretto" },
         ["rose pine"] = { cs = "rose-pine" },
         ["tokyo night"] = { cs = "tokyonight" },
