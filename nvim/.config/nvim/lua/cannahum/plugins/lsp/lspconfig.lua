@@ -175,6 +175,7 @@ vim.api.nvim_create_autocmd("FileType", {
         GRADLE_USER_HOME = gradle_home,
         -- JAVA_HOME = "path/to/java17", -- uncomment if your default Java < 17
       },
+      on_attach = default_on_attach,
     })
   end,
 })
