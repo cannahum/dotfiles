@@ -1,13 +1,19 @@
 -- Shared on_attach function for most servers
+local omnisharp_extended = require("omnisharp_extended")
 local function default_on_attach(client, bufnr)
   print(client.name .. " attached to buffer " .. bufnr)
   local opts = { buffer = bufnr, silent = true }
-  vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-  vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-  vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+  if client.name == "omnisharp" then
+    vim.keymap.set("n", "gd", omnisharp_extended.lsp_definition, opts)
+    vim.keymap.set("n", "gr", omnisharp_extended.lsp_references, opts)
+    vim.keymap.set("n", "gi", omnisharp_extended.lsp_implementation, opts)
+  else
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+    vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+  end
 end
--- local common_capabilities = require("cmp_nvim_lsp").default_capabilities()
-local common_capabilities = vim.lsp.protocol.make_client_capabilities()
+local common_capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 vim.lsp.config("lua_ls", {
   settings = {
@@ -173,6 +179,11 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+vim.lsp.config("omnisharp", {
+  on_attach = default_on_attach,
+  capabilities = common_capabilities,
+})
+
 vim.api.nvim_create_autocmd("VimLeavePre", {
   callback = function()
     if kotlin_client_id then
@@ -207,10 +218,6 @@ return {
         keymap.set("n", "gR", "<cmd>Telescope lsp_references<CR>", opts) -- show definition, references
         opts.desc = "Go to declaration"
         keymap.set("n", "gD", vim.lsp.buf.declaration, opts) -- go to declaration
-        opts.desc = "Show LSP definitions"
-        keymap.set("n", "gd", "<cmd>Telescope lsp_definitions<CR>", opts) -- show lsp definitions
-        opts.desc = "Show LSP implementations"
-        keymap.set("n", "gi", "<cmd>Telescope lsp_implementations<CR>", opts) -- show lsp implementations
         opts.desc = "Show LSP type definitions"
         keymap.set("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", opts) -- show lsp type definitions
         opts.desc = "See available code actions"

@@ -25,7 +25,7 @@ return {
         -- if you want biome for json/markdown too, add them here:
         -- json           = js_like(),
         -- markdown       = js_like(),
-
+        cs = { "csharpier" },
         css = { "prettier" },
         html = { "prettier" },
         json = { "prettier" },
