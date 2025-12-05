@@ -38,6 +38,7 @@ return {
         kotlin = { "ktlint" },
         templ = { "templ" },
         sql = { "sql-formatter" },
+        proto = { "buf" },
         ["*"] = { "trim_newlines", "trim_whitespace" },
       },
 
