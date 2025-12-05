@@ -115,6 +115,8 @@ return {
         ["matte-black"] = "matte-black",
         ["osaka-jade"] = "osaka-jade",
         ristretto = "ristretto",
+        hackerman = "hackerman",
+        ethereal = "ethereal",
       }
 
       -- Normalize Omarchy labels -> colorscheme + optional setup
@@ -143,6 +145,7 @@ return {
         ["ristretto"] = { cs = "ristretto" },
         ["rose pine"] = { cs = "rose-pine" },
         ["tokyo night"] = { cs = "tokyonight" },
+        ["hackerman"] = { cs = "hackerman" },
       }
 
       -- Lowercase + collapse spaces for robust matching

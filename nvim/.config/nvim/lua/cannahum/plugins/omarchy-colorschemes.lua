@@ -14,4 +14,6 @@ return {
   { "tahayvr/matteblack.nvim", name = "matte-black", lazy = true },
   { "ribru17/bamboo.nvim", name = "osaka-jade", lazy = true },
   { "loctvl842/monokai-pro.nvim", name = "ristretto", lazy = true },
+  { "bjarneo/ethereal.nvim", name = "ethereal", lazy = true },
+  { "bjarneo/hackerman.nvim", name = "hackerman", lazy = true, dependencies = { "bjarneo/aether.nvim" } },
 }
