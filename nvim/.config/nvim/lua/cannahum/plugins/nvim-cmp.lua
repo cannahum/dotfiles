@@ -50,6 +50,7 @@ return {
         { name = "luasnip" }, -- snippets
         { name = "buffer" }, -- text within current buffer
         { name = "path" }, -- file system paths
+        { name = "vim-dadbod-completion" }, -- database completion
       }),
 
       -- configure lspkind for vs-code like pictograms in completion menu

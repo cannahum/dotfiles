@@ -48,6 +48,7 @@ return {
         "kotlin",
         "zig",
         "proto",
+        "sql",
       },
       incremental_selection = {
         enable = true,
