@@ -103,6 +103,7 @@ return {
       local known = {
         everforest = "everforest",
         catppuccin = "catppuccin",
+        ["catppuccin-latte"] = "catppuccin",
         tokyonight = "tokyonight",
         kanagawa = "kanagawa",
         nightfox = "nightfox",
@@ -112,17 +113,18 @@ return {
         onedark = "onedark",
         nord = "nord",
         flexoki = "flexoki",
+        ["flexoki-light"] = "flexoki",
         ["matte-black"] = "matte-black",
         ["osaka-jade"] = "osaka-jade",
         ristretto = "ristretto",
         hackerman = "hackerman",
         ethereal = "ethereal",
+        miasma = "miasma",
       }
 
       -- Normalize Omarchy labels -> colorscheme + optional setup
       -- (case/space-insensitive; uses your bg file when present)
       local aliases = {
-        -- From your Omarchy menu
         ["catppuccin"] = { cs = "catppuccin" },
         ["catppuccin latte"] = {
           cs = "catppuccin-latte",
@@ -130,22 +132,43 @@ return {
             vim.o.background = "light"
           end,
         },
+        ["catppuccin-latte"] = {
+          cs = "catppuccin-latte",
+          setup = function()
+            vim.o.background = "light"
+          end,
+        },
+
         ["everforest"] = { cs = "everforest" },
+
         ["flexoki light"] = {
           cs = "flexoki",
           setup = function()
             vim.o.background = "light"
           end,
         },
+        ["flexoki-light"] = {
+          cs = "flexoki",
+          setup = function()
+            vim.o.background = "light"
+          end,
+        },
+
         ["gruvbox"] = { cs = "gruvbox" },
         ["kanagawa"] = { cs = "kanagawa" },
-        ["matte black"] = { cs = "black" }, -- plugin provides :colorscheme black
+        ["matte black"] = { cs = "black" },
         ["nord"] = { cs = "nord" },
-        ["bamboo"] = { cs = "solarized-osaka" }, -- theme from craftzdog/solarized-osaka.nvim
+        ["bamboo"] = { cs = "solarized-osaka" },
+        ["osaka jade"] = { cs = "solarized-osaka" },
+        ["osaka-jade"] = { cs = "solarized-osaka" },
         ["ristretto"] = { cs = "ristretto" },
         ["rose pine"] = { cs = "rose-pine" },
+        ["rose-pine"] = { cs = "rose-pine" },
         ["tokyo night"] = { cs = "tokyonight" },
+        ["tokyo-night"] = { cs = "tokyonight" },
         ["hackerman"] = { cs = "hackerman" },
+        ["ethereal"] = { cs = "ethereal" },
+        ["miasma"] = { cs = "miasma" },
       }
 
       -- Lowercase + collapse spaces for robust matching

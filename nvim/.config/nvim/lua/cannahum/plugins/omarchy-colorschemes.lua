@@ -7,7 +7,7 @@ return {
   { "EdenEast/nightfox.nvim", name = "nightfox", lazy = true },
   { "ellisonleao/gruvbox.nvim", name = "gruvbox", lazy = true },
   { "rose-pine/neovim", name = "rose-pine", lazy = true },
-  { "dracula/vim", name = "dracula", lazy = true }, -- legacy but works
+  { "dracula/vim", name = "dracula", lazy = true },
   { "navarasu/onedark.nvim", name = "onedark", lazy = true },
   { "shaunsingh/nord.nvim", name = "nord", lazy = true },
   { "kepano/flexoki-neovim", name = "flexoki", lazy = true },
@@ -16,4 +16,5 @@ return {
   { "loctvl842/monokai-pro.nvim", name = "ristretto", lazy = true },
   { "bjarneo/ethereal.nvim", name = "ethereal", lazy = true },
   { "bjarneo/hackerman.nvim", name = "hackerman", lazy = true, dependencies = { "bjarneo/aether.nvim" } },
+  { "xero/miasma.nvim", name = "miasma", lazy = true },
 }
