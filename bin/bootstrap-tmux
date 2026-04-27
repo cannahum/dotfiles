@@ -7,6 +7,7 @@ ACTIVE_CONF="$TMUX_DIR/tmux.conf"
 OMARCHY_CONF="$TMUX_DIR/tmux.omarchy.conf"
 USER_CONF="$TMUX_DIR/tmux.user.conf"
 TPM_DIR="$HOME/.config/tmux/plugins/tpm"
+FALLBACK_CONF="$DOTFILES_DIR/tmux/.config/tmux/tmux.fallback.conf"
 
 WRAPPER_CONTENT=$(cat <<'EOF'
 source-file -q ~/.config/tmux/tmux.omarchy.conf
@@ -35,12 +36,19 @@ is_wrapper() {
   [[ -f "$ACTIVE_CONF" ]] && cmp -s <(printf '%s\n' "$WRAPPER_CONTENT") "$ACTIVE_CONF"
 }
 
+is_omarchy() {
+  [[ -d "$HOME/.local/share/omarchy" ]]
+}
+
 capture_omarchy() {
   mkdir -p "$TMUX_DIR"
 
   if [[ -f "$ACTIVE_CONF" ]] && ! is_wrapper; then
     cp "$ACTIVE_CONF" "$OMARCHY_CONF"
     log "Captured Omarchy base config"
+  elif ! is_omarchy && [[ ! -f "$OMARCHY_CONF" ]]; then
+    cp "$FALLBACK_CONF" "$OMARCHY_CONF"
+    log "Not on Omarchy — using fallback styling"
   fi
 }
 
