@@ -9,11 +9,8 @@ USER_CONF="$TMUX_DIR/tmux.user.conf"
 TPM_DIR="$HOME/.config/tmux/plugins/tpm"
 
 WRAPPER_CONTENT=$(cat <<'EOF'
-if-shell '[ -f "$HOME/.config/tmux/tmux.omarchy.conf" ]' \
-  'source-file "$HOME/.config/tmux/tmux.omarchy.conf"'
-
-if-shell '[ -f "$HOME/.config/tmux/tmux.user.conf" ]' \
-  'source-file "$HOME/.config/tmux/tmux.user.conf"'
+source-file -q ~/.config/tmux/tmux.omarchy.conf
+source-file -q ~/.config/tmux/tmux.user.conf
 EOF
 )
 
