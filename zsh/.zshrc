@@ -203,3 +203,4 @@ if [[ -n "$BREW_PREFIX" && -r "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-sy
 elif [[ -r "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
   source "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 fi
+export PATH="$HOME/.local/bin:$PATH"
