@@ -194,6 +194,10 @@ export EDITOR="nvim"
 alias reload-zsh="source ~/.zshrc"
 alias edit-zsh="nvim ~/.zshrc"
 
+if command -v hyprlock >/dev/null; then
+  alias suspend='hyprlock > /dev/null 2>&1 & systemctl suspend'
+fi
+
 ### --- Local overrides (keep this last-ish, but before syntax-highlighting) ---
 [ -f "$HOME/.zshrc_local" ] && source "$HOME/.zshrc_local"
 
