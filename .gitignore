@@ -4,6 +4,7 @@ github-copilot
 iterm2
 tmux/.config/tmux/plugins/
 tmux/.config/tmux/tmux.conf
+tmux/.config/tmux/tmux.omarchy.conf
 alacritty/themes
 thefuck
 **/mcphub/servers.json

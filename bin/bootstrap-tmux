@@ -46,9 +46,17 @@ capture_omarchy() {
   if [[ -f "$ACTIVE_CONF" ]] && ! is_wrapper; then
     cp "$ACTIVE_CONF" "$OMARCHY_CONF"
     log "Captured Omarchy base config"
-  elif ! is_omarchy && [[ ! -f "$OMARCHY_CONF" ]]; then
-    cp "$FALLBACK_CONF" "$OMARCHY_CONF"
-    log "Not on Omarchy — using fallback styling"
+  elif [[ ! -f "$OMARCHY_CONF" ]]; then
+    if is_omarchy; then
+      local omarchy_tmux="$HOME/.local/share/omarchy/config/tmux/tmux.conf"
+      if [[ -f "$omarchy_tmux" ]]; then
+        cp "$omarchy_tmux" "$OMARCHY_CONF"
+        log "Copied Omarchy config from ~/.local/share/omarchy"
+      fi
+    else
+      cp "$FALLBACK_CONF" "$OMARCHY_CONF"
+      log "Not on Omarchy — using fallback styling"
+    fi
   fi
 }
 
