@@ -61,11 +61,12 @@ return {
         if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
           return
         end
+        local is_kotlin = vim.bo[bufnr].filetype == "kotlin"
         return {
           lsp_fallback = true,
-          async = false,
-          timeout_ms = 1000,
-          stop_after_first = true, -- ← key change
+          async = is_kotlin,
+          timeout_ms = is_kotlin and 5000 or 1000,
+          stop_after_first = true,
         }
       end,
     })

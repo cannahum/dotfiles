@@ -55,5 +55,13 @@ return {
     })
 
     require("nvim-ts-autotag").setup()
+
+    -- telescope uses parsers.ft_to_lang which was removed in 0.12
+    local parsers = require("nvim-treesitter.parsers")
+    if not parsers.ft_to_lang then
+      parsers.ft_to_lang = function(ft)
+        return vim.treesitter.language.get_lang(ft) or ft
+      end
+    end
   end,
 }
