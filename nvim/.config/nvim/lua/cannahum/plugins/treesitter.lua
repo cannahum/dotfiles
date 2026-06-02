@@ -56,11 +56,18 @@ return {
 
     require("nvim-ts-autotag").setup()
 
-    -- telescope uses parsers.ft_to_lang which was removed in 0.12
+    -- telescope calls nvim-treesitter APIs removed in 0.12; shim them back
     local parsers = require("nvim-treesitter.parsers")
     if not parsers.ft_to_lang then
       parsers.ft_to_lang = function(ft)
         return vim.treesitter.language.get_lang(ft) or ft
+      end
+    end
+    local ok, configs = pcall(require, "nvim-treesitter.configs")
+    if ok and not configs.is_enabled then
+      configs.is_enabled = function(_, lang, bufnr)
+        local ok2 = pcall(vim.treesitter.get_parser, bufnr or 0, lang)
+        return ok2
       end
     end
   end,
