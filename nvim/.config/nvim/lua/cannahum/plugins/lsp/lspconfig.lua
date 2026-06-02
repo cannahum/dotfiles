@@ -116,16 +116,17 @@ local function find_gradle_root(path)
   end
   local last_root = nil
   local current = util.path.dirname(path)
+  local uv = vim.uv or vim.loop
   while current and #current > 1 do
     local settings = util.path.join(current, "settings.gradle.kts")
     local settings_alt = util.path.join(current, "settings.gradle")
     local build = util.path.join(current, "build.gradle.kts")
     local build_alt = util.path.join(current, "build.gradle")
     if
-      vim.loop.fs_stat(settings)
-      or vim.loop.fs_stat(settings_alt)
-      or vim.loop.fs_stat(build)
-      or vim.loop.fs_stat(build_alt)
+      uv.fs_stat(settings)
+      or uv.fs_stat(settings_alt)
+      or uv.fs_stat(build)
+      or uv.fs_stat(build_alt)
     then
       last_root = current
     end
@@ -151,7 +152,7 @@ vim.api.nvim_create_autocmd("FileType", {
     if kotlin_client_id then
       local client = vim.lsp.get_client_by_id(kotlin_client_id)
       if client and client.config.root_dir == root then
-        vim.lsp.buf_attach_client(ev.buf, kotlin_client_id)
+        vim.lsp.buf.attach_client(ev.buf, kotlin_client_id)
         return
       elseif client == nil then
         kotlin_client_id = nil -- Client died, clear it
@@ -166,10 +167,13 @@ vim.api.nvim_create_autocmd("FileType", {
       vim.log.levels.INFO,
       { title = "Kotlin FileType CB" }
     )
-    -- start the lsp
+    -- start the lsp (binary was renamed from kotlin-lsp to intellij-server in newer Mason packages)
+    local mason_bin = vim.fn.stdpath("data") .. "/mason/bin/"
+    local kotlin_bin = vim.uv.fs_stat(mason_bin .. "intellij-server") and (mason_bin .. "intellij-server")
+      or (mason_bin .. "kotlin-lsp")
     kotlin_client_id = vim.lsp.start({
       name = "kotlin_lsp",
-      cmd = { vim.fn.stdpath("data") .. "/mason/bin/kotlin-lsp", "--stdio" },
+      cmd = { kotlin_bin, "--stdio" },
       root_dir = root,
       cmd_env = {
         GRADLE_USER_HOME = gradle_home,
@@ -236,7 +240,9 @@ return {
         opts.desc = "Show documentation for what is under cursor"
         keymap.set("n", "K", vim.lsp.buf.hover, opts) -- show documentation for what is under cursor
         opts.desc = "Restart LSP"
-        keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts) -- mapping to restart lsp if necessary
+        keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts)
+        opts.desc = "LSP info (checkhealth)"
+        keymap.set("n", "<leader>li", ":checkhealth lsp<CR>", opts)
       end,
     })
     mason_lspconfig.setup({
