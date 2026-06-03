@@ -152,7 +152,7 @@ vim.api.nvim_create_autocmd("FileType", {
     if kotlin_client_id then
       local client = vim.lsp.get_client_by_id(kotlin_client_id)
       if client and client.config.root_dir == root then
-        vim.lsp.buf.attach_client(ev.buf, kotlin_client_id)
+        vim.lsp.buf_attach_client(ev.buf, kotlin_client_id)
         return
       elseif client == nil then
         kotlin_client_id = nil -- Client died, clear it
