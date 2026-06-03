@@ -110,9 +110,6 @@ vim.lsp.config("emmet_ls", {
 -- want the outermost settings.gradle.kts so all subprojects share one client.
 vim.lsp.config("kotlin_lsp", {
   on_attach = default_on_attach,
-  cmd_env = {
-    GRADLE_USER_HOME = vim.fn.stdpath("data") .. "/kotlin-lsp-gradle-home",
-  },
   root_dir = function(bufnr, on_dir)
     local util = require("lspconfig.util")
     local uv = vim.uv
