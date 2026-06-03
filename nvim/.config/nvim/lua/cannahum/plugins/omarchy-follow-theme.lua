@@ -115,6 +115,7 @@ return {
         flexoki = "flexoki",
         ["flexoki-light"] = "flexoki",
         ["matte-black"] = "matte-black",
+        matteblack = "matte-black",
         ["osaka-jade"] = "osaka-jade",
         ristretto = "ristretto",
         hackerman = "hackerman",
