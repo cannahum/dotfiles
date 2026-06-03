@@ -65,6 +65,7 @@
   "osaka-jade": { "branch": "master", "commit": "1309bc88bffcf1bedc3e84e7fa9004de93da774a" },
   "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
   "render-markdown.nvim": { "branch": "main", "commit": "5adf0895310c1904e5abfaad40a2baad7fe44a07" },
+  "retro-82": { "branch": "master", "commit": "41b8c42ed0099eb43824903ef606a6b051d33505" },
   "ristretto": { "branch": "master", "commit": "a68e38b8e55d69a215d0f02598900a79c356da9d" },
   "rose-pine": { "branch": "main", "commit": "ff483051a47e27d84bdef47703538df1ed9f4a47" },
   "snacks.nvim": { "branch": "main", "commit": "882c996cf28183f4d63640de0b4c02ec886d01f2" },
