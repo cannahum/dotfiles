@@ -17,4 +17,5 @@ return {
   { "bjarneo/ethereal.nvim", name = "ethereal", lazy = true },
   { "bjarneo/hackerman.nvim", name = "hackerman", lazy = true, dependencies = { "bjarneo/aether.nvim" } },
   { "xero/miasma.nvim", name = "miasma", lazy = true },
+  { "OldJobobo/retro-82.nvim", name = "retro-82", lazy = true },
 }

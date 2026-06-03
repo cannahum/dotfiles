@@ -120,6 +120,7 @@ return {
         hackerman = "hackerman",
         ethereal = "ethereal",
         miasma = "miasma",
+        ["retro-82"] = "retro-82",
       }
 
       -- Normalize Omarchy labels -> colorscheme + optional setup
@@ -169,6 +170,7 @@ return {
         ["hackerman"] = { cs = "hackerman" },
         ["ethereal"] = { cs = "ethereal" },
         ["miasma"] = { cs = "miasma" },
+        ["retro-82"] = { cs = "retro-82" },
       }
 
       -- Lowercase + collapse spaces for robust matching
@@ -286,6 +288,28 @@ return {
         last_key = key
         ensure_and_apply(cs)
       end
+
+      vim.api.nvim_create_user_command("Theme", function(args)
+        local name = vim.trim(args.args)
+        if name == "" then
+          vim.notify("Current theme: " .. (vim.g.colors_name or "unknown"), vim.log.levels.INFO, { title = "Theme" })
+        else
+          ensure_and_apply(name)
+        end
+      end, {
+        nargs = "?",
+        complete = function(lead)
+          local matches = {}
+          for name in pairs(known) do
+            if name:sub(1, #lead) == lead then
+              matches[#matches + 1] = name
+            end
+          end
+          table.sort(matches)
+          return matches
+        end,
+        desc = "Set colorscheme by name (tab-complete from known themes)",
+      })
 
       if vim.fn.isdirectory(om_dir) == 0 then
         vim.notify(

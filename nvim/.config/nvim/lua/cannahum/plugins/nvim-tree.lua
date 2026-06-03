@@ -63,20 +63,11 @@ end
 
 local function resize_nvim_tree(amount)
   local view = require("nvim-tree.view")
-
   if not view.is_visible() then
     vim.notify("nvim-tree is not visible", vim.log.levels.INFO)
     return
   end
-
-  -- Adjust width dynamically
-  local current_width = view.View.width or 30 -- Default width
-  local new_width = math.max(current_width + amount, 1) -- Ensure minimum width
-  view.View.width = new_width
-  view.resize(new_width)
-
-  -- Persist the width for the session
-  vim.g.nvim_tree_width = new_width
+  view.resize((amount >= 0 and "+" or "") .. tostring(amount))
 end
 
 return {
