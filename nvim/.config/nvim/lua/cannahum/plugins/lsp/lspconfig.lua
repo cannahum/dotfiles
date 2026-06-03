@@ -105,99 +105,37 @@ vim.lsp.config("emmet_ls", {
   filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
 })
 
--- Kotlin LSP Configuration - TRUE SINGLETON CLIENT AT MONOREPO ROOT
-local util = require("lspconfig.util")
-local kotlin_client_id = nil -- Only ONE client per neovim instance
-local monorepo_root = nil -- Cache for monorpo root
--- Helper: find the OUTERMOST Gradle root
-local function find_gradle_root(path)
-  if monorepo_root then
-    return monorepo_root
-  end
-  local last_root = nil
-  local current = util.path.dirname(path)
-  local uv = vim.uv or vim.loop
-  while current and #current > 1 do
-    local settings = util.path.join(current, "settings.gradle.kts")
-    local settings_alt = util.path.join(current, "settings.gradle")
-    local build = util.path.join(current, "build.gradle.kts")
-    local build_alt = util.path.join(current, "build.gradle")
-    if
-      uv.fs_stat(settings)
-      or uv.fs_stat(settings_alt)
-      or uv.fs_stat(build)
-      or uv.fs_stat(build_alt)
-    then
-      last_root = current
-    end
-    current = util.path.dirname(current)
-  end
-  monorepo_root = last_root
-  pcall(
-    vim.notify,
-    "monorepo_root set to " .. tostring(monorepo_root),
-    vim.log.levels.INFO,
-    { title = "find_gradle_root" }
-  )
-  return monorepo_root
-end
-
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "kotlin",
-  callback = function(ev)
-    -- Always use the cached monorepo root for all buffers
-    local bufname = vim.api.nvim_buf_get_name(ev.buf)
-    local root = find_gradle_root(bufname) or vim.fn.getcwd()
-    -- Attach to singleton client if it exists and is valid
-    if kotlin_client_id then
-      local client = vim.lsp.get_client_by_id(kotlin_client_id)
-      if client and client.config.root_dir == root then
-        vim.lsp.buf_attach_client(ev.buf, kotlin_client_id)
-        return
-      elseif client == nil then
-        kotlin_client_id = nil -- Client died, clear it
+-- Kotlin: custom root_dir to find the outermost Gradle root (monorepo-safe).
+-- lspconfig's default root_markers finds the nearest match; for a monorepo we
+-- want the outermost settings.gradle.kts so all subprojects share one client.
+vim.lsp.config("kotlin_lsp", {
+  on_attach = default_on_attach,
+  cmd_env = {
+    GRADLE_USER_HOME = vim.fn.stdpath("data") .. "/kotlin-lsp-gradle-home",
+  },
+  root_dir = function(bufnr, on_dir)
+    local util = require("lspconfig.util")
+    local uv = vim.uv
+    local fname = vim.api.nvim_buf_get_name(bufnr)
+    local last_root = nil
+    local current = util.path.dirname(fname)
+    while current and #current > 1 do
+      if uv.fs_stat(util.path.join(current, "settings.gradle.kts"))
+        or uv.fs_stat(util.path.join(current, "settings.gradle"))
+        or uv.fs_stat(util.path.join(current, "build.gradle.kts"))
+        or uv.fs_stat(util.path.join(current, "build.gradle"))
+      then
+        last_root = current
       end
+      current = util.path.dirname(current)
     end
-    -- give kotlin-lsp its own Gradle home to avoid global ~/.gradle locks
-    local gradle_home = vim.fn.stdpath("data") .. "/kotlin-lsp-gradle-home"
-    vim.fn.mkdir(gradle_home, "p")
-    pcall(
-      vim.notify,
-      "starting singleton kotlin-lsp at " .. root,
-      vim.log.levels.INFO,
-      { title = "Kotlin FileType CB" }
-    )
-    -- start the lsp (binary was renamed from kotlin-lsp to intellij-server in newer Mason packages)
-    local mason_bin = vim.fn.stdpath("data") .. "/mason/bin/"
-    local kotlin_bin = vim.uv.fs_stat(mason_bin .. "intellij-server") and (mason_bin .. "intellij-server")
-      or (mason_bin .. "kotlin-lsp")
-    kotlin_client_id = vim.lsp.start({
-      name = "kotlin_lsp",
-      cmd = { kotlin_bin, "--stdio" },
-      root_dir = root,
-      cmd_env = {
-        GRADLE_USER_HOME = gradle_home,
-        -- JAVA_HOME = "path/to/java17", -- uncomment if your default Java < 17
-      },
-      on_attach = default_on_attach,
-    })
+    on_dir(last_root or util.find_git_ancestor(fname) or vim.fn.getcwd())
   end,
 })
 
 vim.lsp.config("omnisharp", {
   on_attach = default_on_attach,
   capabilities = common_capabilities,
-})
-
-vim.api.nvim_create_autocmd("VimLeavePre", {
-  callback = function()
-    if kotlin_client_id then
-      local client = vim.lsp.get_client_by_id(kotlin_client_id)
-      if client then
-        client.stop()
-      end
-    end
-  end,
 })
 
 return {
