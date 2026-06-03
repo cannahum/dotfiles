@@ -1,9 +1,9 @@
 -- Shared on_attach function for most servers
-local omnisharp_extended = require("omnisharp_extended")
 local function default_on_attach(client, bufnr)
   print(client.name .. " attached to buffer " .. bufnr)
   local opts = { buffer = bufnr, silent = true }
   if client.name == "omnisharp" then
+    local omnisharp_extended = require("omnisharp_extended")
     vim.keymap.set("n", "gd", omnisharp_extended.lsp_definition, opts)
     vim.keymap.set("n", "gr", omnisharp_extended.lsp_references, opts)
     vim.keymap.set("n", "gi", omnisharp_extended.lsp_implementation, opts)

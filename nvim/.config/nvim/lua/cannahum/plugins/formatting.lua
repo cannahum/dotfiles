@@ -11,7 +11,7 @@ return {
       if use_biome then
         return { "biome" } -- biome handles formatting + organize imports
       else
-        return { "prettierd", "prettier" } -- try prettierd, fall back to prettier
+        return { "prettierd", "prettier", stop_after_first = true } -- try prettierd, fall back to prettier
       end
     end
 
@@ -64,9 +64,7 @@ return {
         local is_kotlin = vim.bo[bufnr].filetype == "kotlin"
         return {
           lsp_fallback = true,
-          async = is_kotlin,
           timeout_ms = is_kotlin and 5000 or 1000,
-          stop_after_first = true,
         }
       end,
     })
@@ -77,9 +75,6 @@ return {
         lsp_fallback = true,
         async = false,
         timeout_ms = 1000,
-        stop_after_first = true, -- ← key change
-        -- If you want to force a list here, keep it flat, e.g.:
-        -- formatters = js_like(),
       })
     end, { desc = "Format file or range (in visual mode)" })
 

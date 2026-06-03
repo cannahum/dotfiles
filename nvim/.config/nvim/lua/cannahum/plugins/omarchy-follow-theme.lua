@@ -157,11 +157,11 @@ return {
 
         ["gruvbox"] = { cs = "gruvbox" },
         ["kanagawa"] = { cs = "kanagawa" },
-        ["matte black"] = { cs = "black" },
+        ["matte black"] = { cs = "matteblack" },
         ["nord"] = { cs = "nord" },
-        ["bamboo"] = { cs = "solarized-osaka" },
-        ["osaka jade"] = { cs = "solarized-osaka" },
-        ["osaka-jade"] = { cs = "solarized-osaka" },
+        ["bamboo"] = { cs = "bamboo" },
+        ["osaka jade"] = { cs = "bamboo" },
+        ["osaka-jade"] = { cs = "bamboo" },
         ["ristretto"] = { cs = "ristretto" },
         ["rose pine"] = { cs = "rose-pine" },
         ["rose-pine"] = { cs = "rose-pine" },
@@ -199,15 +199,10 @@ return {
         if base == "solarized" or base == "solarized-osaka" then
           base = "osaka-jade"
         end
-        return base
-      end
-
-      local function refresh_statuslines()
-        local ok, lualine = pcall(require, "lualine")
-        if ok then
-          lualine.setup({ options = { theme = "auto" } })
-          lualine.refresh()
+        if base == "retro" then
+          base = "retro-82"
         end
+        return base
       end
 
       local function ensure_and_apply(cs)
@@ -252,12 +247,10 @@ return {
                 )
               else
                 log("info", "apply: second attempt succeeded")
-                refresh_statuslines()
               end
             end, 500)
           else
             log("info", "apply: success")
-            refresh_statuslines()
           end
         end
 
