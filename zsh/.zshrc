@@ -158,6 +158,7 @@ fi
 
 # zoxide
 if command -v zoxide >/dev/null; then
+  export _ZO_DOCTOR=0
   eval "$(zoxide init zsh)"
   # only alias cd if `z` exists to avoid breaking builtin cd
   if command -v z >/dev/null; then
