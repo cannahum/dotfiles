@@ -117,7 +117,8 @@ vim.lsp.config("kotlin_lsp", {
     local last_root = nil
     local current = util.path.dirname(fname)
     while current and #current > 1 do
-      if uv.fs_stat(util.path.join(current, "settings.gradle.kts"))
+      if
+        uv.fs_stat(util.path.join(current, "settings.gradle.kts"))
         or uv.fs_stat(util.path.join(current, "settings.gradle"))
         or uv.fs_stat(util.path.join(current, "build.gradle.kts"))
         or uv.fs_stat(util.path.join(current, "build.gradle"))
@@ -129,6 +130,24 @@ vim.lsp.config("kotlin_lsp", {
     on_dir(last_root or util.find_git_ancestor(fname) or vim.fn.getcwd())
   end,
 })
+
+-- sourcekit-lsp ships with Xcode (macOS) or the Swift toolchain (Linux), not
+-- Mason, so it needs explicit enable. Guard on executable presence so this
+-- config is portable to machines without Swift installed.
+-- Default root_dir (buildServer.json > .xcodeproj/.xcworkspace > Package.swift > .git)
+-- already suits Xcode-workspace repos; buildServer.json comes from
+-- `xcode-build-server config`. On Linux, only the Package.swift/.git markers
+-- apply since Xcode-project support requires macOS.
+if vim.fn.executable("sourcekit-lsp") == 1 then
+  vim.lsp.config("sourcekit", {
+    on_attach = default_on_attach,
+    -- lspconfig's default also includes c/cpp (sourcekit-lsp understands them for
+    -- ObjC bridging-header interop); dropped here so a future clangd setup
+    -- doesn't end up racing sourcekit-lsp for the same C/C++ buffers.
+    filetypes = { "swift", "objc", "objcpp" },
+  })
+  vim.lsp.enable("sourcekit")
+end
 
 vim.lsp.config("omnisharp", {
   on_attach = default_on_attach,
