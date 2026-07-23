@@ -5,6 +5,7 @@ iterm2
 tmux/.config/tmux/plugins/
 tmux/.config/tmux/tmux.conf
 tmux/.config/tmux/tmux.omarchy.conf
+tmux/.config/tmux/*.bak.*
 alacritty/themes
 thefuck
 **/mcphub/servers.json
