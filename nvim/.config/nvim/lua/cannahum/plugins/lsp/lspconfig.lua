@@ -2,12 +2,18 @@
 local function default_on_attach(client, bufnr)
   print(client.name .. " attached to buffer " .. bufnr)
   local opts = { buffer = bufnr, silent = true }
-  vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-  vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-  vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+  if client.name == "omnisharp" then
+    local omnisharp_extended = require("omnisharp_extended")
+    vim.keymap.set("n", "gd", omnisharp_extended.lsp_definition, opts)
+    vim.keymap.set("n", "gr", omnisharp_extended.lsp_references, opts)
+    vim.keymap.set("n", "gi", omnisharp_extended.lsp_implementation, opts)
+  else
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+    vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+  end
 end
--- local common_capabilities = require("cmp_nvim_lsp").default_capabilities()
-local common_capabilities = vim.lsp.protocol.make_client_capabilities()
+local common_capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 vim.lsp.config("lua_ls", {
   settings = {
@@ -99,39 +105,53 @@ vim.lsp.config("emmet_ls", {
   filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
 })
 
-local lspconfig = require("lspconfig")
-local util = require("lspconfig.util")
--- helper: does PATH contain any of these files?
-local function has_any(path, files)
-  for _, f in ipairs(files) do
-    if vim.loop.fs_stat(util.path.join(path, f)) then
-      return true
+-- Kotlin: custom root_dir to find the outermost Gradle root (monorepo-safe).
+-- lspconfig's default root_markers finds the nearest match; for a monorepo we
+-- want the outermost settings.gradle.kts so all subprojects share one client.
+vim.lsp.config("kotlin_lsp", {
+  on_attach = default_on_attach,
+  root_dir = function(bufnr, on_dir)
+    local util = require("lspconfig.util")
+    local uv = vim.uv
+    local fname = vim.api.nvim_buf_get_name(bufnr)
+    local last_root = nil
+    local current = util.path.dirname(fname)
+    while current and #current > 1 do
+      if
+        uv.fs_stat(util.path.join(current, "settings.gradle.kts"))
+        or uv.fs_stat(util.path.join(current, "settings.gradle"))
+        or uv.fs_stat(util.path.join(current, "build.gradle.kts"))
+        or uv.fs_stat(util.path.join(current, "build.gradle"))
+      then
+        last_root = current
+      end
+      current = util.path.dirname(current)
     end
-  end
-  return false
+    on_dir(last_root or util.find_git_ancestor(fname) or vim.fn.getcwd())
+  end,
+})
+
+-- sourcekit-lsp ships with Xcode (macOS) or the Swift toolchain (Linux), not
+-- Mason, so it needs explicit enable. Guard on executable presence so this
+-- config is portable to machines without Swift installed.
+-- Default root_dir (buildServer.json > .xcodeproj/.xcworkspace > Package.swift > .git)
+-- already suits Xcode-workspace repos; buildServer.json comes from
+-- `xcode-build-server config`. On Linux, only the Package.swift/.git markers
+-- apply since Xcode-project support requires macOS.
+if vim.fn.executable("sourcekit-lsp") == 1 then
+  vim.lsp.config("sourcekit", {
+    on_attach = default_on_attach,
+    -- lspconfig's default also includes c/cpp (sourcekit-lsp understands them for
+    -- ObjC bridging-header interop); dropped here so a future clangd setup
+    -- doesn't end up racing sourcekit-lsp for the same C/C++ buffers.
+    filetypes = { "swift", "objc", "objcpp" },
+  })
+  vim.lsp.enable("sourcekit")
 end
 
-local gradle_files = {
-  "settings.gradle.kts",
-  "settings.gradle",
-  "pom.xml",
-  "build.gradle.kts",
-  "build.gradle",
-}
-
-lspconfig.kotlin_lsp.setup({
+vim.lsp.config("omnisharp", {
   on_attach = default_on_attach,
   capabilities = common_capabilities,
-  filetypes = { "kotlin", "kts" }, -- "kotlin" covers .kt too.
-  root_dir = function(fname)
-    -- climb up; stop if we hit a gradle root
-    return util.search_ancestors(fname, function(path)
-      if has_any(path, gradle_files) then
-        return path
-      end
-    end)
-  end,
-  single_file_support = true,
 })
 
 return {
@@ -157,10 +177,6 @@ return {
         keymap.set("n", "gR", "<cmd>Telescope lsp_references<CR>", opts) -- show definition, references
         opts.desc = "Go to declaration"
         keymap.set("n", "gD", vim.lsp.buf.declaration, opts) -- go to declaration
-        opts.desc = "Show LSP definitions"
-        keymap.set("n", "gd", "<cmd>Telescope lsp_definitions<CR>", opts) -- show lsp definitions
-        opts.desc = "Show LSP implementations"
-        keymap.set("n", "gi", "<cmd>Telescope lsp_implementations<CR>", opts) -- show lsp implementations
         opts.desc = "Show LSP type definitions"
         keymap.set("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", opts) -- show lsp type definitions
         opts.desc = "See available code actions"
@@ -178,7 +194,9 @@ return {
         opts.desc = "Show documentation for what is under cursor"
         keymap.set("n", "K", vim.lsp.buf.hover, opts) -- show documentation for what is under cursor
         opts.desc = "Restart LSP"
-        keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts) -- mapping to restart lsp if necessary
+        keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts)
+        opts.desc = "LSP info (checkhealth)"
+        keymap.set("n", "<leader>li", ":checkhealth lsp<CR>", opts)
       end,
     })
     mason_lspconfig.setup({
@@ -193,6 +211,7 @@ return {
         "html",
         "htmx",
         "jsonls",
+        "kotlin_lsp",
         "lua_ls",
         "marksman",
         "omnisharp",

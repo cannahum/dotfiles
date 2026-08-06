@@ -1,0 +1,21 @@
+-- Predeclare popular themes so Lazy can install/load them on demand.
+return {
+  { "neanias/everforest-nvim", name = "everforest", lazy = true },
+  { "catppuccin/nvim", name = "catppuccin", lazy = true },
+  { "folke/tokyonight.nvim", name = "tokyonight", lazy = true },
+  { "rebelot/kanagawa.nvim", name = "kanagawa", lazy = true },
+  { "EdenEast/nightfox.nvim", name = "nightfox", lazy = true },
+  { "ellisonleao/gruvbox.nvim", name = "gruvbox", lazy = true },
+  { "rose-pine/neovim", name = "rose-pine", lazy = true },
+  { "dracula/vim", name = "dracula", lazy = true },
+  { "navarasu/onedark.nvim", name = "onedark", lazy = true },
+  { "shaunsingh/nord.nvim", name = "nord", lazy = true },
+  { "kepano/flexoki-neovim", name = "flexoki", lazy = true },
+  { "tahayvr/matteblack.nvim", name = "matte-black", lazy = true },
+  { "ribru17/bamboo.nvim", name = "osaka-jade", lazy = true },
+  { "loctvl842/monokai-pro.nvim", name = "ristretto", lazy = true },
+  { "bjarneo/ethereal.nvim", name = "ethereal", lazy = true },
+  { "bjarneo/hackerman.nvim", name = "hackerman", lazy = true, dependencies = { "bjarneo/aether.nvim" } },
+  { "xero/miasma.nvim", name = "miasma", lazy = true },
+  { "OldJobobo/retro-82.nvim", name = "retro-82", lazy = true },
+}

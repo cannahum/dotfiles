@@ -80,7 +80,7 @@
 )
 
 (deflayer base
-  esc mute vold volu brdn brup prev pp pp next _ @nav-key
+  esc mute vold volu brdn brup prev pp pp next prtsc @nav-key
   ` q w e r t y u i o p \
   (caps-word 2000) @a-mod @s-mod @d-mod @f-mod g h @j-mod @k-mod @l-mod @semi-mod '
   @numlockmousekey z x c v b n m comm . / @numlockmousekey

@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+TMUX_DIR="$HOME/.config/tmux"
+ACTIVE_CONF="$TMUX_DIR/tmux.conf"
+OMARCHY_CONF="$TMUX_DIR/tmux.omarchy.conf"
+USER_CONF="$TMUX_DIR/tmux.user.conf"
+TPM_DIR="$HOME/.config/tmux/plugins/tpm"
+FALLBACK_CONF="$DOTFILES_DIR/tmux/.config/tmux/tmux.fallback.conf"
+
+WRAPPER_CONTENT=$(cat <<'EOF'
+source-file -q ~/.config/tmux/tmux.omarchy.conf
+source-file -q ~/.config/tmux/tmux.user.conf
+EOF
+)
+
+log() {
+  printf '%s\n' "$*"
+}
+
+have_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+stow_tmux() {
+  if have_cmd stow; then
+    log "Stowing tmux from $DOTFILES_DIR"
+    (cd "$DOTFILES_DIR" && stow tmux)
+  else
+    log "GNU Stow not found — skipping"
+  fi
+}
+
+is_wrapper() {
+  [[ -f "$ACTIVE_CONF" ]] && cmp -s <(printf '%s\n' "$WRAPPER_CONTENT") "$ACTIVE_CONF"
+}
+
+is_omarchy() {
+  [[ -d "$HOME/.local/share/omarchy" ]]
+}
+
+capture_omarchy() {
+  mkdir -p "$TMUX_DIR"
+
+  if [[ -f "$ACTIVE_CONF" ]] && ! is_wrapper; then
+    cp "$ACTIVE_CONF" "$OMARCHY_CONF"
+    log "Captured Omarchy base config"
+  elif [[ ! -f "$OMARCHY_CONF" ]]; then
+    if is_omarchy; then
+      local omarchy_tmux="$HOME/.local/share/omarchy/config/tmux/tmux.conf"
+      if [[ -f "$omarchy_tmux" ]]; then
+        cp "$omarchy_tmux" "$OMARCHY_CONF"
+        log "Copied Omarchy config from ~/.local/share/omarchy"
+      fi
+    else
+      cp "$FALLBACK_CONF" "$OMARCHY_CONF"
+      log "Not on Omarchy — using fallback styling"
+    fi
+  fi
+}
+
+write_wrapper() {
+  printf '%s\n' "$WRAPPER_CONTENT" > "$ACTIVE_CONF"
+  log "Wrote wrapper"
+}
+
+ensure_tpm() {
+  local plugins_dir="$HOME/.config/tmux/plugins"
+  local tpm_dir="$plugins_dir/tpm"
+
+  mkdir -p "$plugins_dir"
+
+  if [[ -d "$tpm_dir" ]]; then
+    log "TPM already installed at $tpm_dir"
+    return 0
+  fi
+
+  if have_cmd git; then
+    log "Installing TPM to $tpm_dir"
+    git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
+  else
+    log "git not found; skipping TPM install"
+  fi
+}
+
+reload_tmux() {
+  if have_cmd tmux && tmux ls >/dev/null 2>&1; then
+    tmux source-file "$ACTIVE_CONF"
+    log "Reloaded tmux"
+  fi
+}
+
+main() {
+  stow_tmux
+  capture_omarchy
+  write_wrapper
+  ensure_tpm
+  reload_tmux
+  log "tmux bootstrap complete"
+}
+
+main "$@"
