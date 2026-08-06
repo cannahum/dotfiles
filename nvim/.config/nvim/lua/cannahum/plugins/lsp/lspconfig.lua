@@ -105,6 +105,21 @@ vim.lsp.config("emmet_ls", {
   filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
 })
 
+-- Java: nvim-lspconfig's built-in jdtls default already provides correct
+-- root_markers and a cmd that computes a per-project workspace dir, so we
+-- only need to layer on_attach/capabilities here.
+vim.lsp.config("jdtls", {
+  on_attach = function(client, bufnr)
+    default_on_attach(client, bufnr)
+    -- jdtls handles format requests fine but doesn't reliably advertise the
+    -- capability (same quirk worked around for zls below), which makes
+    -- conform.nvim's lsp_fallback skip it.
+    client.server_capabilities.documentFormattingProvider = true
+    client.server_capabilities.documentRangeFormattingProvider = true
+  end,
+  capabilities = common_capabilities,
+})
+
 -- Kotlin: custom root_dir to find the outermost Gradle root (monorepo-safe).
 -- lspconfig's default root_markers finds the nearest match; for a monorepo we
 -- want the outermost settings.gradle.kts so all subprojects share one client.
@@ -210,6 +225,7 @@ return {
         "graphql",
         "html",
         "htmx",
+        "jdtls",
         "jsonls",
         "kotlin_lsp",
         "lua_ls",

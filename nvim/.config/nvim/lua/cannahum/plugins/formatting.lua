@@ -36,11 +36,22 @@ return {
         lua = { "stylua" },
         python = { "isort", "black" },
         kotlin = { "ktlint" },
+        -- jdtls handles formatting; run it before the "*" trim cleanup below
+        -- (lsp_fallback=true elsewhere would never reach LSP here since the
+        -- "*" wildcard always has a formatter available, defeating "fallback")
+        java = { lsp_format = "first" },
         templ = { "templ" },
         sql = { "sql-formatter" },
         proto = { "buf" },
         swift = { "swift" },
         ["*"] = { "trim_newlines", "trim_whitespace" },
+      },
+
+      -- Global default: fall back to LSP formatting when no formatter is
+      -- configured for a filetype. Set here (not per-call) so per-filetype
+      -- overrides like java's lsp_format="first" above aren't clobbered.
+      default_format_opts = {
+        lsp_format = "fallback",
       },
 
       formatters = {
@@ -64,7 +75,6 @@ return {
         end
         local is_kotlin = vim.bo[bufnr].filetype == "kotlin"
         return {
-          lsp_fallback = true,
           timeout_ms = is_kotlin and 5000 or 1000,
         }
       end,
@@ -73,7 +83,6 @@ return {
     -- manual format keymap (match behavior on save)
     vim.keymap.set({ "n", "v" }, "<leader>cf", function()
       conform.format({
-        lsp_fallback = true,
         async = false,
         timeout_ms = 1000,
       })
