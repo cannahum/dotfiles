@@ -39,6 +39,7 @@ return {
         templ = { "templ" },
         sql = { "sql-formatter" },
         proto = { "buf" },
+        swift = { "swift" },
         ["*"] = { "trim_newlines", "trim_whitespace" },
       },
 
