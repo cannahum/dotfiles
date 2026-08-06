@@ -9,7 +9,6 @@ return {
   { "rose-pine/neovim", name = "rose-pine", lazy = true },
   { "dracula/vim", name = "dracula", lazy = true },
   { "navarasu/onedark.nvim", name = "onedark", lazy = true },
-  { "shaunsingh/nord.nvim", name = "nord", lazy = true },
   { "kepano/flexoki-neovim", name = "flexoki", lazy = true },
   { "tahayvr/matteblack.nvim", name = "matte-black", lazy = true },
   { "ribru17/bamboo.nvim", name = "osaka-jade", lazy = true },
@@ -18,4 +17,7 @@ return {
   { "bjarneo/hackerman.nvim", name = "hackerman", lazy = true, dependencies = { "bjarneo/aether.nvim" } },
   { "xero/miasma.nvim", name = "miasma", lazy = true },
   { "OldJobobo/retro-82.nvim", name = "retro-82", lazy = true },
+  { "omacom-io/lumon.nvim", name = "lumon", lazy = true },
+  { "bjarneo/vantablack.nvim", name = "vantablack", lazy = true },
+  { "bjarneo/white.nvim", name = "white", lazy = true },
 }

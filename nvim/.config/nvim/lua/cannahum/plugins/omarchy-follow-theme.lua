@@ -109,18 +109,26 @@ return {
         nightfox = "nightfox",
         gruvbox = "gruvbox",
         ["rose-pine"] = "rose-pine",
+        ["rose-pine-dawn"] = "rose-pine",
+        ["rose-pine-moon"] = "rose-pine",
+        ["rose-pine-main"] = "rose-pine",
         dracula = "dracula",
         onedark = "onedark",
-        nord = "nord",
         flexoki = "flexoki",
         ["flexoki-light"] = "flexoki",
         matteblack = "matte-black",
         ["osaka-jade"] = "osaka-jade",
+        bamboo = "osaka-jade", -- Omarchy's "Osaka Jade" theme now emits raw cs "bamboo"
         ristretto = "ristretto",
+        ["monokai-pro-ristretto"] = "ristretto",
+        nordfox = "nightfox", -- Omarchy's "Nord" theme now uses nightfox.nvim's nordfox variant, not nord.nvim
         hackerman = "hackerman",
         ethereal = "ethereal",
         miasma = "miasma",
         ["retro-82"] = "retro-82",
+        lumon = "lumon",
+        vantablack = "vantablack",
+        white = "white",
       }
 
       -- Normalize Omarchy labels -> colorscheme + optional setup
@@ -159,11 +167,13 @@ return {
         ["kanagawa"] = { cs = "kanagawa" },
         ["matte black"] = { cs = "matteblack" },
         ["matte-black"] = { cs = "matteblack" },
-        ["nord"] = { cs = "nord" },
         ["bamboo"] = { cs = "bamboo" },
         ["osaka jade"] = { cs = "bamboo" },
         ["osaka-jade"] = { cs = "bamboo" },
-        ["ristretto"] = { cs = "ristretto" },
+        -- "ristretto" plugin only ships "monokai-pro-ristretto.lua", not a bare "ristretto.lua";
+        -- bare "monokai-pro" applies the generic filter, not the ristretto palette.
+        ["ristretto"] = { cs = "monokai-pro-ristretto" },
+        ["monokai-pro"] = { cs = "monokai-pro-ristretto" },
         ["rose pine"] = { cs = "rose-pine" },
         ["rose-pine"] = { cs = "rose-pine" },
         ["tokyo night"] = { cs = "tokyonight" },
@@ -172,6 +182,9 @@ return {
         ["ethereal"] = { cs = "ethereal" },
         ["miasma"] = { cs = "miasma" },
         ["retro-82"] = { cs = "retro-82" },
+        ["lumon"] = { cs = "lumon" },
+        ["vantablack"] = { cs = "vantablack" },
+        ["white"] = { cs = "white" },
       }
 
       -- Lowercase + collapse spaces for robust matching
@@ -196,9 +209,6 @@ return {
         local base = (cs or ""):gsub("%-.*$", "") -- e.g. "catppuccin-latte" -> "catppuccin"
         if base == "black" then
           base = "matte-black"
-        end
-        if base == "solarized" or base == "solarized-osaka" then
-          base = "osaka-jade"
         end
         if base == "retro" then
           base = "retro-82"
