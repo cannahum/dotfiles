@@ -18,7 +18,7 @@ return {
     { "<leader>ee", "<cmd>Oil<CR>", desc = "Open file explorer" },
   },
   opts = {
-    default_file_explorer = false,
+    default_file_explorer = true,
     view_options = {
       show_hidden = true,
     },
