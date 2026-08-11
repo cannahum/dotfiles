@@ -114,6 +114,11 @@ autoload -Uz compinit
 compinit -u
 
 ### --- QoL plugins ---
+# tree-sitter CLI (needed by nvim-treesitter main-branch parser builds)
+if [[ "$OSTYPE" == darwin* ]] && command -v brew >/dev/null && ! command -v tree-sitter >/dev/null; then
+  brew install tree-sitter
+fi
+
 # zsh-autosuggestions
 if [[ -n "$BREW_PREFIX" && -r "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
   source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
