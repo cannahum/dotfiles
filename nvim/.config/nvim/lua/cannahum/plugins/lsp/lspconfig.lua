@@ -80,10 +80,40 @@ vim.lsp.config("html", {
   filetypes = { "html", "templ" },
 })
 
-vim.lsp.config("htmx", {
-  on_attach = default_on_attach,
+-- Base filetypes are javascript/typescript/jsx/tsx/vue/svelte/astro/htmlangular;
+-- html/templ added so ESLint (and its fix-on-save) also covers inline
+-- <script> blocks in those. Runs eslint.applyAllFixes directly on save
+-- (same request nvim-lspconfig's default :LspEslintFixAll command issues)
+-- rather than depending on that command, since our on_attach override
+-- replaces the base config's on_attach that would otherwise define it.
+vim.lsp.config("eslint", {
+  on_attach = function(client, bufnr)
+    default_on_attach(client, bufnr)
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      buffer = bufnr,
+      callback = function()
+        client:request_sync("workspace/executeCommand", {
+          command = "eslint.applyAllFixes",
+          arguments = {
+            { uri = vim.uri_from_bufnr(bufnr), version = vim.lsp.util.buf_versions[bufnr] },
+          },
+        }, nil, bufnr)
+      end,
+    })
+  end,
   capabilities = common_capabilities,
-  filetypes = { "html", "templ", "svelte", "react" },
+  filetypes = {
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue",
+    "svelte",
+    "astro",
+    "htmlangular",
+    "html",
+    "templ",
+  },
 })
 
 vim.lsp.config("zls", {
@@ -113,13 +143,16 @@ vim.lsp.config("svelte", {
 vim.lsp.config("graphql", {
   on_attach = default_on_attach,
   capabilities = common_capabilities,
-  filetypes = { "graphql", "graphqls", "gql", "svelte", "typescriptreact", "javascriptreact" },
+  -- .graphql, .gql, and .graphqls all resolve to the single builtin filetype
+  -- "graphql" (there's no such filetype as "gql"/"graphqls" in Neovim), so
+  -- that's the only name that will ever actually get assigned to a buffer.
+  filetypes = { "graphql" },
 })
 
 vim.lsp.config("emmet_ls", {
   on_attach = default_on_attach,
   capabilities = common_capabilities,
-  filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
+  filetypes = { "html", "templ", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
 })
 
 -- Java: nvim-lspconfig's built-in jdtls default already provides correct
@@ -238,10 +271,10 @@ return {
         "docker_compose_language_service",
         "dockerls",
         "emmet_ls",
+        "eslint",
         "gopls",
         "graphql",
         "html",
-        "htmx",
         "jdtls",
         "jsonls",
         "kotlin_lsp",

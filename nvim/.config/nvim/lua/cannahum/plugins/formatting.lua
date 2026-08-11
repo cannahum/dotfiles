@@ -11,7 +11,7 @@ return {
       if use_biome then
         return { "biome" } -- biome handles formatting + organize imports
       else
-        return { "prettierd", "prettier", stop_after_first = true } -- try prettierd, fall back to prettier
+        return { "prettierd" }
       end
     end
 

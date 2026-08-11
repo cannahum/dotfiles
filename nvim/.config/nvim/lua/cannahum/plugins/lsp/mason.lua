@@ -19,12 +19,12 @@ return {
     })
     mason_tool_installer.setup({
       ensure_installed = {
-        "prettier", -- prettier formatter
+        "prettier", -- prettier formatter (css/html/json/yaml/markdown/graphql/liquid)
+        "prettierd", -- fast daemonized prettier for js/ts/jsx/tsx/svelte
         "stylua", -- lua formatter
         "isort", -- python formatter
         "black", -- python formatter
         "pylint",
-        "eslint_d",
         "golangci-lint",
         "csharpier",
         "ktlint",

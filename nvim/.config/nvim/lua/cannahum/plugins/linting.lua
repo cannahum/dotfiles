@@ -18,12 +18,15 @@ return {
       }),
     }
 
+    -- js/ts/jsx/tsx/svelte diagnostics come from the eslint LSP when biome isn't
+    -- in play; nvim-lint only needs to step in for biome projects (or python).
+    local js_linters = use_biome and { "biome" } or {}
     lint.linters_by_ft = {
-      javascript = { use_biome and "biome" or "eslint_d" },
-      typescript = { use_biome and "biome" or "eslint_d" },
-      javascriptreact = { use_biome and "biome" or "eslint_d" },
-      typescriptreact = { use_biome and "biome" or "eslint_d" },
-      svelte = { use_biome and "biome" or "eslint_d" },
+      javascript = js_linters,
+      typescript = js_linters,
+      javascriptreact = js_linters,
+      typescriptreact = js_linters,
+      svelte = js_linters,
       python = { "pylint" },
     }
 
