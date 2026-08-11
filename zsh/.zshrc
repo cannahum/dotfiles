@@ -116,7 +116,7 @@ compinit -u
 ### --- QoL plugins ---
 # tree-sitter CLI (needed by nvim-treesitter main-branch parser builds)
 if [[ "$OSTYPE" == darwin* ]] && command -v brew >/dev/null && ! command -v tree-sitter >/dev/null; then
-  brew install tree-sitter
+  brew install tree-sitter-cli
 fi
 
 # zsh-autosuggestions
