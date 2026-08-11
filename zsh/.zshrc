@@ -115,9 +115,15 @@ compinit -u
 
 ### --- QoL plugins ---
 # tree-sitter CLI (needed by nvim-treesitter main-branch parser builds)
-if [[ "$OSTYPE" == darwin* ]] && command -v brew >/dev/null && ! command -v tree-sitter >/dev/null; then
-  brew install tree-sitter-cli
+# Stamp-guarded: only ever attempted once, so a slow/stuck install can't
+# pile up blocking `brew install` calls across every newly opened pane.
+_ts_cli_stamp="$HOME/.cache/dotfiles-tree-sitter-cli-attempted"
+if [[ "$OSTYPE" == darwin* ]] && command -v brew >/dev/null && ! command -v tree-sitter >/dev/null && [[ ! -f "$_ts_cli_stamp" ]]; then
+  mkdir -p "$HOME/.cache"
+  touch "$_ts_cli_stamp"
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install tree-sitter-cli
 fi
+unset _ts_cli_stamp
 
 # zsh-autosuggestions
 if [[ -n "$BREW_PREFIX" && -r "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
