@@ -48,6 +48,23 @@ vim.lsp.config("gopls", {
 vim.lsp.config("templ", {
   on_attach = default_on_attach,
   capabilities = common_capabilities,
+  -- If the project pins templ via a Go 1.24+ `tool` directive, run the LSP through
+  -- `go tool templ` so its live codegen matches the go.mod-pinned runtime version.
+  -- Otherwise the PATH-resolved `templ` binary can drift from go.mod (e.g. mise's
+  -- global version), and the LSP's in-memory codegen calls runtime functions that
+  -- don't exist in the older pinned package, surfacing as bogus "undefined" errors.
+  cmd = function(dispatchers, config)
+    local root = config.root_dir or vim.fn.getcwd()
+    local uses_go_tool = false
+    local f = io.open(root .. "/go.mod", "r")
+    if f then
+      local content = f:read("*a")
+      f:close()
+      uses_go_tool = content:match("tool%s+github%.com/a%-h/templ") ~= nil
+    end
+    local cmd = uses_go_tool and { "go", "tool", "templ", "lsp" } or { "templ", "lsp" }
+    return vim.lsp.rpc.start(cmd, dispatchers, { cwd = root })
+  end,
 })
 
 vim.lsp.config("tailwindcss", {
