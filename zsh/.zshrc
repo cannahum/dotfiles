@@ -153,7 +153,7 @@ fi
 ### --- bat / eza / zoxide (guarded) ---
 # bat
 if command -v bat >/dev/null; then
-  export BAT_THEME=tokyonight_night
+  export BAT_THEME="Monokai Extended"
 fi
 
 # ls -> eza only if installed

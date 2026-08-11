@@ -320,11 +320,11 @@ return {
 
       if vim.fn.isdirectory(om_dir) == 0 then
         vim.notify(
-          "Omarchy not detected; falling back to catppuccin colorsheme",
+          "Omarchy not detected; falling back to ristretto colorsheme",
           vim.log.levels.INFO,
           { title = "Omarchy" }
         )
-        ensure_and_apply("catppuccin")
+        ensure_and_apply("ristretto")
         return
       end
 
