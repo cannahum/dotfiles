@@ -206,6 +206,9 @@ return {
 
       -- Map colorscheme -> key in `known` so Lazy loads the right plugin first
       local function plugin_key_for(cs)
+        if known[cs] then
+          return cs
+        end
         local base = (cs or ""):gsub("%-.*$", "") -- e.g. "catppuccin-latte" -> "catppuccin"
         if base == "black" then
           base = "matte-black"
