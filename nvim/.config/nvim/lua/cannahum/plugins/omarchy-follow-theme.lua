@@ -5,7 +5,7 @@ return {
     priority = 1000,
     config = function()
       local uv = vim.uv or vim.loop
-      local om_dir = vim.fn.expand("~/.config/omarchy/current")
+      local om_dir = vim.fn.expand("~/.local/state/omarchy/current")
       local theme_lua = vim.fn.expand(om_dir .. "/theme/neovim.lua")
       local bg_file = vim.fn.expand(om_dir .. "/background")
 

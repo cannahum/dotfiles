@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+export DOTFILES_DIR
+
+declare -A MODULES=(
+  [tmux]="$DOTFILES_DIR/bin/bootstrap-tmux"
+  [kanata]="$DOTFILES_DIR/bin/bootstrap-kanata"
+  [hyprland]="$DOTFILES_DIR/bin/hypr/bootstrap-hyprland"
+  [kitty]="$DOTFILES_DIR/bin/bootstrap-kitty"
+  [nvim]="$DOTFILES_DIR/bin/bootstrap-nvim"
+  [zsh]="$DOTFILES_DIR/bin/bootstrap-zsh"
+)
+
+log() {
+  printf '%s\n' "$*"
+}
+
+run_module() {
+  local name="$1"
+  local script="${MODULES[$name]:-}"
+
+  if [[ -z $script ]]; then
+    log "Unknown module: $name (known: ${!MODULES[*]})"
+    return 1
+  fi
+
+  if [[ ! -x $script ]]; then
+    log "Skipping $name — not found or not executable: $script"
+    return 1
+  fi
+
+  log "==> $name"
+  "$script"
+}
+
+main() {
+  local names=("$@")
+  ((${#names[@]})) || names=("${!MODULES[@]}")
+
+  for name in "${names[@]}"; do
+    run_module "$name"
+  done
+
+  log "bootstrap complete"
+}
+
+main "$@"

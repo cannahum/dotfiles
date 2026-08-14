@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+HYPR_DIR="$HOME/.config/hypr"
+PACKAGE_DIR="$DOTFILES_DIR/hyprland/.config/hypr"
+
+log() {
+  printf '%s\n' "$*"
+}
+
+have_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+backup_live_files() {
+  mkdir -p "$HYPR_DIR"
+
+  for path in "$PACKAGE_DIR"/*; do
+    local f
+    f=$(basename "$path")
+    local live="$HYPR_DIR/$f"
+
+    if [[ -f "$live" && ! -L "$live" ]]; then
+      local backup="$live.bak.$(date +%s)"
+      log "Backing up live $f -> $(basename "$backup")"
+      mv "$live" "$backup"
+    fi
+  done
+}
+
+stow_hyprland() {
+  if have_cmd stow; then
+    log "Stowing hyprland from $DOTFILES_DIR"
+    (cd "$DOTFILES_DIR" && stow hyprland)
+  else
+    log "GNU Stow not found — skipping"
+  fi
+}
+
+reload_hyprland() {
+  if have_cmd hyprctl && hyprctl monitors >/dev/null 2>&1; then
+    hyprctl reload >/dev/null 2>&1 && log "Reloaded Hyprland" || log "hyprctl reload failed"
+  else
+    log "Not running under Hyprland — skipping reload"
+  fi
+}
+
+main() {
+  backup_live_files
+  stow_hyprland
+  reload_hyprland
+  log "hyprland bootstrap complete"
+}
+
+main "$@"

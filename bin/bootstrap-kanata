@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+UDEV_RULE_FILE="/etc/udev/rules.d/99-kanata-uinput.rules"
+UDEV_RULE_CONTENT='KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"'
+SERVICE="kanata.service"
+
+log() {
+  printf '%s\n' "$*"
+}
+
+have_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+stow_kanata() {
+  if have_cmd stow; then
+    log "Stowing kanata from $DOTFILES_DIR"
+    (cd "$DOTFILES_DIR" && stow kanata)
+  else
+    log "GNU Stow not found — skipping"
+  fi
+}
+
+ensure_uinput_group() {
+  if ! getent group uinput >/dev/null; then
+    log "Creating 'uinput' group"
+    sudo groupadd uinput
+  fi
+
+  if ! id -nG "$USER" | tr ' ' '\n' | grep -qx uinput; then
+    log "Adding $USER to 'uinput' group (re-login required to take effect)"
+    sudo usermod -aG uinput "$USER"
+  fi
+}
+
+ensure_udev_rule() {
+  if [[ -f "$UDEV_RULE_FILE" ]] && grep -qF "$UDEV_RULE_CONTENT" "$UDEV_RULE_FILE"; then
+    log "udev rule already in place at $UDEV_RULE_FILE"
+    return 0
+  fi
+
+  log "Installing udev rule at $UDEV_RULE_FILE"
+  printf '%s\n' "$UDEV_RULE_CONTENT" | sudo tee "$UDEV_RULE_FILE" >/dev/null
+
+  log "Reloading udev rules"
+  sudo udevadm control --reload-rules
+  sudo udevadm trigger --name-match=uinput 2>/dev/null || sudo udevadm trigger
+}
+
+restart_service() {
+  systemctl --user daemon-reload
+  systemctl --user reset-failed "$SERVICE" >/dev/null 2>&1 || true
+
+  log "Enabling and starting $SERVICE"
+  systemctl --user enable --now "$SERVICE"
+
+  sleep 1
+  if systemctl --user is-active --quiet "$SERVICE"; then
+    log "$SERVICE is active"
+  else
+    log "$SERVICE failed to start — recent logs:"
+    journalctl --user -u "$SERVICE" --no-pager -n 15
+    return 1
+  fi
+}
+
+main() {
+  stow_kanata
+  ensure_uinput_group
+  ensure_udev_rule
+  restart_service
+  log "kanata bootstrap complete"
+}
+
+main "$@"

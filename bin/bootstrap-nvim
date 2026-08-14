@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+
+log() {
+  printf '%s\n' "$*"
+}
+
+have_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+stow_nvim() {
+  if have_cmd stow; then
+    log "Stowing nvim from $DOTFILES_DIR"
+    (cd "$DOTFILES_DIR" && stow nvim)
+  else
+    log "GNU Stow not found — skipping"
+  fi
+}
+
+sync_plugins() {
+  if have_cmd nvim; then
+    log "Syncing lazy.nvim plugins (headless)"
+    nvim --headless "+Lazy! sync" +qa 2>&1 | tail -n +1
+  else
+    log "nvim not found — skipping plugin sync"
+  fi
+}
+
+main() {
+  stow_nvim
+  sync_plugins
+  log "nvim bootstrap complete"
+}
+
+main "$@"

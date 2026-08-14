@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+
+log() {
+  printf '%s\n' "$*"
+}
+
+have_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+stow_zsh() {
+  if have_cmd stow; then
+    log "Stowing zsh from $DOTFILES_DIR"
+    (cd "$DOTFILES_DIR" && stow zsh)
+  else
+    log "GNU Stow not found — skipping"
+  fi
+}
+
+main() {
+  stow_zsh
+  log "zsh bootstrap complete (tree-sitter-cli and other tool installs are handled by .zshrc itself on next shell start)"
+}
+
+main "$@"

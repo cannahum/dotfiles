@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+
+log() {
+  printf '%s\n' "$*"
+}
+
+have_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+stow_kitty() {
+  if have_cmd stow; then
+    log "Stowing kitty from $DOTFILES_DIR"
+    (cd "$DOTFILES_DIR" && stow kitty)
+  else
+    log "GNU Stow not found — skipping"
+  fi
+}
+
+link_theme() {
+  local kitty_dir="$HOME/.config/kitty"
+  local omarchy_theme="$HOME/.local/state/omarchy/current/theme/kitty.conf"
+  local fallback_theme="$kitty_dir/fallback-theme.conf"
+  local theme_link="$kitty_dir/theme.conf"
+
+  if [[ -f $omarchy_theme ]]; then
+    ln -sf "$omarchy_theme" "$theme_link"
+    log "theme.conf -> Omarchy theme"
+  elif [[ -f $fallback_theme ]]; then
+    ln -sf "$fallback_theme" "$theme_link"
+    log "theme.conf -> fallback (current-theme.conf)"
+  else
+    log "WARNING: no theme found (neither Omarchy nor fallback)"
+  fi
+}
+
+reload_kitty() {
+  if have_cmd kitty && [[ -n ${KITTY_LISTEN_ON:-} ]]; then
+    kitten @ --to "$KITTY_LISTEN_ON" load-config >/dev/null 2>&1 && log "Reloaded kitty" || true
+  fi
+}
+
+main() {
+  stow_kitty
+  link_theme
+  reload_kitty
+  log "kitty bootstrap complete"
+}
+
+main "$@"
