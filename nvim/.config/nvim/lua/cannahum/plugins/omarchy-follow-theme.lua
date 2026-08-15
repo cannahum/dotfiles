@@ -7,7 +7,10 @@ return {
       local uv = vim.uv or vim.loop
       local om_dir = vim.fn.expand("~/.local/state/omarchy/current")
       local theme_lua = vim.fn.expand(om_dir .. "/theme/neovim.lua")
-      local bg_file = vim.fn.expand(om_dir .. "/background")
+      -- Quattro's top-level "current/background" is now a symlink to the
+      -- desktop wallpaper image, not a "light"/"dark" text file — the mode
+      -- indicator moved into the theme's own colors.toml.
+      local colors_toml = vim.fn.expand(om_dir .. "/theme/colors.toml")
 
       -- -------------------------
       -- Logging -- example use: OMARCHY_THEME_LOG=debug nvim
@@ -86,17 +89,17 @@ return {
       end
 
       local function read_background()
-        local b = slurp(bg_file)
-        if not b then
+        local data = slurp(colors_toml)
+        if not data then
           log("trace", "read_background: no file")
           return nil
         end
-        b = b:gsub("%s+", "")
+        local b = data:match('mode%s*=%s*"([^"]+)"') or data:match("mode%s*=%s*'([^']+)'")
         if b == "light" or b == "dark" then
           log("trace", "read_background -> %s", b)
           return b
         end
-        log("trace", "read_background: invalid '%s'", b)
+        log("trace", "read_background: invalid '%s'", tostring(b))
         return nil
       end
 
@@ -112,8 +115,7 @@ return {
         ["rose-pine-dawn"] = "rose-pine",
         ["rose-pine-moon"] = "rose-pine",
         ["rose-pine-main"] = "rose-pine",
-        dracula = "dracula",
-        onedark = "onedark",
+        ashen = "ashen", -- Omarchy's "Solitude" theme
         flexoki = "flexoki",
         ["flexoki-light"] = "flexoki",
         matteblack = "matte-black",
@@ -135,6 +137,9 @@ return {
       -- (case/space-insensitive; uses your bg file when present)
       local aliases = {
         ["catppuccin"] = { cs = "catppuccin" },
+        -- Omarchy's base "Catppuccin" theme now emits raw cs "catppuccin-nvim"
+        -- (not a real :colorscheme name) — map it back to the plugin's default.
+        ["catppuccin-nvim"] = { cs = "catppuccin" },
         ["catppuccin latte"] = {
           cs = "catppuccin-latte",
           setup = function()
@@ -185,6 +190,8 @@ return {
         ["lumon"] = { cs = "lumon" },
         ["vantablack"] = { cs = "vantablack" },
         ["white"] = { cs = "white" },
+        ["solitude"] = { cs = "ashen" },
+        ["ashen"] = { cs = "ashen" },
       }
 
       -- Lowercase + collapse spaces for robust matching
@@ -366,7 +373,12 @@ return {
 
         log("trace", "fs_event: filename=%s status=%s", tostring(filename), tostring(status))
 
-        if filename == "background" then
+        -- omarchy-theme-set swaps the whole "theme" subdirectory in one
+        -- atomic rename, so that's the entry name libuv reports here — not
+        -- "colors.toml" or "neovim.lua" individually. Force a reapply even
+        -- when the colorscheme key looks unchanged (e.g. two themes that
+        -- both render via "aether" but differ in light/dark mode).
+        if filename == "theme" then
           vim.schedule(function()
             local bg = read_background()
             if bg and vim.o.background ~= bg then
@@ -376,7 +388,7 @@ return {
               log("trace", "fs_event: background unchanged (vim=%s, file=%s)", tostring(vim.o.background), tostring(bg))
             end
             schedule_rescan()
-            on_theme_change(" (bg file)", true)
+            on_theme_change(" (theme dir)", true)
           end)
           return
         end

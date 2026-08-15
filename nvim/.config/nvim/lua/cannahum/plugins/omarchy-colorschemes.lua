@@ -7,8 +7,6 @@ return {
   { "EdenEast/nightfox.nvim", name = "nightfox", lazy = true },
   { "ellisonleao/gruvbox.nvim", name = "gruvbox", lazy = true },
   { "rose-pine/neovim", name = "rose-pine", lazy = true },
-  { "dracula/vim", name = "dracula", lazy = true },
-  { "navarasu/onedark.nvim", name = "onedark", lazy = true },
   { "kepano/flexoki-neovim", name = "flexoki", lazy = true },
   { "tahayvr/matteblack.nvim", name = "matte-black", lazy = true },
   { "ribru17/bamboo.nvim", name = "osaka-jade", lazy = true },
@@ -20,4 +18,5 @@ return {
   { "omacom-io/lumon.nvim", name = "lumon", lazy = true },
   { "bjarneo/vantablack.nvim", name = "vantablack", lazy = true },
   { "bjarneo/white.nvim", name = "white", lazy = true },
+  { "ficcdaf/ashen.nvim", name = "ashen", lazy = true }, -- Omarchy's "Solitude" theme
 }
