@@ -116,6 +116,7 @@ return {
         ["rose-pine-moon"] = "rose-pine",
         ["rose-pine-main"] = "rose-pine",
         ashen = "ashen", -- Omarchy's "Solitude" theme
+        aether = "aether", -- Omarchy's "Ristretto" theme
         flexoki = "flexoki",
         ["flexoki-light"] = "flexoki",
         matteblack = "matte-black",
