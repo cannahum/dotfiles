@@ -5,8 +5,6 @@ DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
 TMUX_DIR="$HOME/.config/tmux"
 ACTIVE_CONF="$TMUX_DIR/tmux.conf"
 OMARCHY_CONF="$TMUX_DIR/tmux.omarchy.conf"
-USER_CONF="$TMUX_DIR/tmux.user.conf"
-TPM_DIR="$HOME/.config/tmux/plugins/tpm"
 FALLBACK_CONF="$DOTFILES_DIR/tmux/.config/tmux/tmux.fallback.conf"
 
 WRAPPER_CONTENT=$(cat <<'EOF'
@@ -65,25 +63,6 @@ write_wrapper() {
   log "Wrote wrapper"
 }
 
-ensure_tpm() {
-  local plugins_dir="$HOME/.config/tmux/plugins"
-  local tpm_dir="$plugins_dir/tpm"
-
-  mkdir -p "$plugins_dir"
-
-  if [[ -d "$tpm_dir" ]]; then
-    log "TPM already installed at $tpm_dir"
-    return 0
-  fi
-
-  if have_cmd git; then
-    log "Installing TPM to $tpm_dir"
-    git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
-  else
-    log "git not found; skipping TPM install"
-  fi
-}
-
 reload_tmux() {
   if have_cmd tmux && tmux ls >/dev/null 2>&1; then
     tmux source-file "$ACTIVE_CONF"
@@ -95,7 +74,6 @@ main() {
   stow_tmux
   capture_omarchy
   write_wrapper
-  ensure_tpm
   reload_tmux
   log "tmux bootstrap complete"
 }
