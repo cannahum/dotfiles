@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+OMARCHY_DIR="$HOME/.config/omarchy"
+PACKAGE_DIR="$DOTFILES_DIR/omarchy-shell/.config/omarchy"
+
+# Explicit leaf paths only (relative to $OMARCHY_DIR / $PACKAGE_DIR) — never
+# the whole tree. ~/.config/omarchy also holds branding/, defaults/,
+# extensions/, hooks/, and other user plugins Omarchy or the user drop in on
+# their own; blindly folding the directory would fight them.
+MANAGED_PATHS=(
+  "shell.json"
+  "plugins/cannahum.workspaces"
+)
+
+log() {
+  printf '%s\n' "$*"
+}
+
+have_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+backup_live_files() {
+  mkdir -p "$OMARCHY_DIR/plugins"
+
+  for rel in "${MANAGED_PATHS[@]}"; do
+    local live="$OMARCHY_DIR/$rel"
+
+    if [[ -e "$live" && ! -L "$live" ]]; then
+      local backup="$live.bak.$(date +%s)"
+      log "Backing up live $rel -> $(basename "$backup")"
+      mv "$live" "$backup"
+    fi
+  done
+}
+
+stow_omarchy_shell() {
+  if have_cmd stow; then
+    log "Stowing omarchy-shell from $DOTFILES_DIR"
+    (cd "$DOTFILES_DIR" && stow omarchy-shell)
+  else
+    log "GNU Stow not found — skipping"
+  fi
+}
+
+reload_omarchy_shell() {
+  # The shell's own process is the "quickshell" binary; "omarchy-shell" is
+  # just the IPC-dispatching CLI used to talk to it.
+  if have_cmd omarchy-shell && pgrep -x quickshell >/dev/null 2>&1; then
+    # A plain plugin-file save hot-reloads, but a plugin swapped in via
+    # shell.json (bar layout id change) needs the shell itself restarted for
+    # already-mounted per-monitor bar instances to pick up the new component.
+    omarchy restart shell >/dev/null 2>&1 && log "Restarted omarchy shell" || log "omarchy restart shell failed"
+  else
+    log "omarchy-shell not running — skipping reload"
+  fi
+}
+
+main() {
+  backup_live_files
+  stow_omarchy_shell
+  reload_omarchy_shell
+  log "omarchy-shell bootstrap complete"
+}
+
+main "$@"

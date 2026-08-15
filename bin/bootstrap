@@ -8,6 +8,7 @@ declare -A MODULES=(
   [tmux]="$DOTFILES_DIR/bin/bootstrap-tmux"
   [kanata]="$DOTFILES_DIR/bin/bootstrap-kanata"
   [hyprland]="$DOTFILES_DIR/bin/hypr/bootstrap-hyprland"
+  [omarchy-shell]="$DOTFILES_DIR/bin/bootstrap-omarchy-shell"
   [kitty]="$DOTFILES_DIR/bin/bootstrap-kitty"
   [nvim]="$DOTFILES_DIR/bin/bootstrap-nvim"
   [zsh]="$DOTFILES_DIR/bin/bootstrap-zsh"
