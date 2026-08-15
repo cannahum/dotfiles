@@ -2,6 +2,8 @@
 set -euo pipefail
 
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+NVIM_DIR="$HOME/.config/nvim"
+PACKAGE_DIR="$DOTFILES_DIR/nvim/.config/nvim"
 
 log() {
   printf '%s\n' "$*"
@@ -9,6 +11,30 @@ log() {
 
 have_cmd() {
   command -v "$1" >/dev/null 2>&1
+}
+
+# A fresh Omarchy install ships ~/.config/nvim already populated (from the
+# omarchy-nvim package's /etc/skel copy) as real files, not symlinks — and
+# several of our own paths (init.lua, lua/config/*, a few lua/plugins/*
+# files copied from that same source) collide with it by name. Stow refuses
+# to touch ANY of its files (not just the conflicting ones) when even one
+# real, non-symlink file already sits where it wants to place a link, so
+# those live files need backing up first — same pattern as
+# bin/hypr/bootstrap-hyprland, generalized for nvim's nested tree.
+backup_live_files() {
+  mkdir -p "$NVIM_DIR"
+
+  while IFS= read -r -d '' path; do
+    local rel="${path#"$PACKAGE_DIR"/}"
+    local live="$NVIM_DIR/$rel"
+
+    if [[ -e "$live" && ! -L "$live" ]]; then
+      local backup="$live.bak.$(date +%s)"
+      log "Backing up live $rel -> $(basename "$backup")"
+      mkdir -p "$(dirname "$backup")"
+      mv "$live" "$backup"
+    fi
+  done < <(find "$PACKAGE_DIR" -type f -print0)
 }
 
 stow_nvim() {
@@ -30,6 +56,7 @@ sync_plugins() {
 }
 
 main() {
+  backup_live_files
   stow_nvim
   sync_plugins
   log "nvim bootstrap complete"
