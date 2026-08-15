@@ -3,7 +3,7 @@ return {
   event = { "BufReadPre", "BufNewFile" },
   config = function()
     local lint = require("lint")
-    local biome = require("cannahum.utils.biome")
+    local biome = require("utils.biome")
     local use_biome = biome.has_biome_config()
 
     lint.linters.biome = {

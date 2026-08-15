@@ -1,4 +1,4 @@
-vim.g.mapleader = " "
+-- mapleader is already " " via LazyVim's own defaults (lazyvim/config/options.lua)
 
 local keymap = vim.keymap -- for conciseness
 
