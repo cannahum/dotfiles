@@ -13,8 +13,3 @@ local home = os.getenv("HOME")
 -- Cycle through the configured keyboard layouts (us,tr,il — see input.lua).
 o.bind("SUPER + BACKSLASH", "Cycle keyboard layout", home .. "/.local/bin/hypr-cycle-layouts")
 o.bind("SUPER + SHIFT + BACKSLASH", "Cycle keyboard layout (prev)", home .. "/.local/bin/hypr-cycle-layouts --prev")
-
--- Extra shortcuts alongside (not replacing) Omarchy's defaults
--- (SUPER+W already closes, SUPER+CTRL+T already opens Activity/btop).
-o.bind("SUPER + SHIFT + Q", "Close window", hl.dsp.window.close())
-o.bind("SUPER + SHIFT + T", "Activity", { tui = "btop" })
