@@ -5,5 +5,9 @@ hl.config({
   input = {
     -- Three keyboard layouts, switched with the cycle bind in bindings.lua.
     kb_layout = "us,tr,il",
+
+    touchpad = {
+      natural_scroll = true,
+    },
   },
 })
