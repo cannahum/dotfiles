@@ -1,13 +1,10 @@
 return {
   "nvim-treesitter/nvim-treesitter",
-  branch = "main",
-  event = { "BufReadPre", "BufNewFile" },
-  build = ":TSUpdate",
-  dependencies = {
-    "windwp/nvim-ts-autotag",
-  },
-  config = function()
-    local ensure_installed = {
+  opts = {
+    -- LazyVim's opts_extend = { "ensure_installed" } (declared on its own
+    -- spec for this plugin) unions this with its own base list rather than
+    -- replacing it, so overlap with LazyVim's own parsers is harmless.
+    ensure_installed = {
       "json",
       "javascript",
       "typescript",
@@ -39,22 +36,6 @@ return {
       "zig",
       "proto",
       "sql",
-    }
-
-    require("nvim-treesitter").setup()
-    -- main-branch nvim-treesitter's setup() doesn't read ensure_installed at all;
-    -- parsers must be installed explicitly. install() skips ones already present.
-    require("nvim-treesitter").install(ensure_installed)
-
-    require("nvim-ts-autotag").setup()
-
-    -- main-branch nvim-treesitter no longer auto-starts highlighting from setup();
-    -- it must be started per-buffer. See :h treesitter-highlight
-    vim.api.nvim_create_autocmd("FileType", {
-      group = vim.api.nvim_create_augroup("cannahum-treesitter-highlight", { clear = true }),
-      callback = function()
-        pcall(vim.treesitter.start)
-      end,
-    })
-  end,
+    },
+  },
 }
