@@ -22,6 +22,16 @@ backup_live_files() {
     local live="$HYPR_DIR/$f"
 
     if [[ -f "$live" && ! -L "$live" ]]; then
+      # If ~/.config/hypr itself ever ends up folded into a single directory
+      # symlink by Stow (happens when nothing else has populated it yet),
+      # every file reached through it looks like "a real file" here even
+      # though it's actually the repo's own copy viewed via the live path --
+      # confirmed to actually happen for nvim's package. Skip anything that
+      # already resolves to the package's own copy.
+      if [[ "$(readlink -f "$live")" == "$(readlink -f "$path")" ]]; then
+        continue
+      fi
+
       local backup="$live.bak.$(date +%s)"
       log "Backing up live $f -> $(basename "$backup")"
       mv "$live" "$backup"

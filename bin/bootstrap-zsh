@@ -22,6 +22,16 @@ backup_live_files() {
     local live="$HOME/$rel"
 
     if [[ -e "$live" && ! -L "$live" ]]; then
+      # If a whole subtree here ever gets folded into one directory symlink
+      # by Stow, files reached through it look like "real files" here even
+      # though they canonicalize to the repo's own copy -- confirmed to
+      # actually happen for nvim's package (mass-renamed every tracked nvim
+      # config file). Skip anything that already resolves to the package's
+      # own copy.
+      if [[ "$(readlink -f "$live")" == "$(readlink -f "$path")" ]]; then
+        continue
+      fi
+
       local backup="$live.bak.$(date +%s)"
       log "Backing up live $rel -> $(basename "$backup")"
       mkdir -p "$(dirname "$backup")"
