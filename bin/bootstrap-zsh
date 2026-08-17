@@ -2,6 +2,7 @@
 set -euo pipefail
 
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+PACKAGE_DIR="$DOTFILES_DIR/zsh"
 
 log() {
   printf '%s\n' "$*"
@@ -9,6 +10,24 @@ log() {
 
 have_cmd() {
   command -v "$1" >/dev/null 2>&1
+}
+
+# Stow refuses to link any file in the package if even one of its target
+# paths is already a real file (not a symlink) -- e.g. starship.toml, which
+# Omarchy seeds into ~/.config on install as a plain file. Back those up
+# first, same pattern as bin/bootstrap-nvim.
+backup_live_files() {
+  while IFS= read -r -d '' path; do
+    local rel="${path#"$PACKAGE_DIR"/}"
+    local live="$HOME/$rel"
+
+    if [[ -e "$live" && ! -L "$live" ]]; then
+      local backup="$live.bak.$(date +%s)"
+      log "Backing up live $rel -> $(basename "$backup")"
+      mkdir -p "$(dirname "$backup")"
+      mv "$live" "$backup"
+    fi
+  done < <(find "$PACKAGE_DIR" -type f -print0)
 }
 
 stow_zsh() {
@@ -20,8 +39,27 @@ stow_zsh() {
   fi
 }
 
+ensure_starship_installed() {
+  if have_cmd starship; then
+    log "starship already installed"
+    return 0
+  fi
+
+  if have_cmd brew; then
+    log "Installing starship via brew"
+    brew install starship
+  elif have_cmd pacman; then
+    log "Installing starship via pacman"
+    sudo pacman -S --needed --noconfirm starship
+  else
+    log "WARNING: starship not found and no supported package manager (brew/pacman) detected — install manually: https://starship.rs/guide/#step-1-install-starship"
+  fi
+}
+
 main() {
+  backup_live_files
   stow_zsh
+  ensure_starship_installed
   log "zsh bootstrap complete (tree-sitter-cli and other tool installs are handled by .zshrc itself on next shell start)"
 }
 
