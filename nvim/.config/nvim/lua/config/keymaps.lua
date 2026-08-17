@@ -2,19 +2,18 @@
 
 local keymap = vim.keymap -- for conciseness
 
-keymap.set("i", "jk", "<ESC>", { desc = "Exit insert mode with jk" })
-
 keymap.set("n", "<leader>nh", ":nohl<CR>", { desc = "Clear search highlights" })
 
--- increment / decrement numbers
-keymap.set("n", "<leader>+", "<C-a>", { desc = "Increment number" }) -- increment
-keymap.set("n", "<leader>-", "<C-x>", { desc = "Decrement number" }) -- decrement
+-- Increment/decrement: dropped <leader>+/<leader>- (they just called vim's
+-- own native <C-a>/<C-x>, adding nothing) -- also frees <leader>- for
+-- LazyVim's "Split Window Below", which our override was silently
+-- clobbering. Use <C-a>/<C-x> directly.
 
--- window management
-keymap.set("n", "<leader>sv", "<C-w>v", { desc = "Split window vertically" }) -- split window vertically
-keymap.set("n", "<leader>sh", "<C-w>s", { desc = "Split window horizontally" }) -- split window horizontally
-keymap.set("n", "<leader>se", "<C-w>=", { desc = "Make splits equal size" }) -- make split windows equal width & height
-keymap.set("n", "<leader>sx", "<cmd>close<CR>", { desc = "Close current split" }) -- close current split window
+-- Window management: dropped <leader>sv/sh/se/sx -- they lived under
+-- <leader>s, which LazyVim claims for its search menu (<leader>sh even
+-- collided outright with "Help Pages"). LazyVim already covers this: <leader>w
+-- proxies to <C-w> for anything (wv, w=, wc...), plus dedicated <leader>-
+-- (split below), <leader>| (split right), <leader>wd (close window).
 
 -- -- ThePrimeagen remaps -- --
 -- Block move vertically
@@ -34,6 +33,3 @@ keymap.set("n", "N", "Nzzzv")
 
 -- Pasting over selection will not lose what your were pasting
 keymap.set("x", "<leader>p", '"_dP')
-
--- Search and replace the current word
-vim.keymap.set("n", "<leader>S", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
