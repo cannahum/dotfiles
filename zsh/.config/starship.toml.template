@@ -1,0 +1,51 @@
+# Template for ~/.config/starship.toml, rendered by
+# bin/omarchy-theme-set-starship (installed as an Omarchy theme-set hook, so
+# it reruns on every `omarchy theme set`). The __PLACEHOLDER__ tokens below
+# get substituted with the current theme's actual colors from
+# ~/.local/state/omarchy/current/theme/colors.toml. Edit the structure here;
+# the generated ~/.config/starship.toml is not tracked by git.
+add_newline = true
+command_timeout = 200
+format = "[$directory$git_branch$git_state$git_status]($style)$character"
+
+palette = "omarchy"
+
+[palettes.omarchy]
+accent = "__ACCENT__"
+clean = "__CLEAN__"
+dirty = "__DIRTY__"
+warn = "__WARN__"
+
+[character]
+error_symbol = "[✗](bold dirty)"
+success_symbol = "[❯](bold accent)"
+
+[directory]
+truncation_length = 2
+truncation_symbol = "…/"
+style = "accent"
+repo_root_style = "bold accent"
+repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
+
+[git_branch]
+format = "[$branch]($style) "
+style = "italic accent"
+
+[git_state]
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+style  = "bold warn"
+
+[git_status]
+format     = '[$all_status]($style)'
+style      = "dirty"
+ahead      = "⇡${count} "
+diverged   = "⇕⇡${ahead_count}⇣${behind_count} "
+behind     = "⇣${count} "
+conflicted = " "
+up_to_date = "[ ](bold clean)"
+untracked  = "? "
+modified   = " "
+stashed    = ""
+staged     = "+ "
+renamed    = ""
+deleted    = "✘ "

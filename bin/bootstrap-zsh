@@ -56,10 +56,27 @@ ensure_starship_installed() {
   fi
 }
 
+sync_starship_theme() {
+  if [[ -x "$DOTFILES_DIR/bin/omarchy-theme-set-starship" ]]; then
+    "$DOTFILES_DIR/bin/omarchy-theme-set-starship"
+  fi
+}
+
+install_theme_hook() {
+  if have_cmd omarchy; then
+    log "Installing starship theme-set hook"
+    omarchy hook install theme-set "$DOTFILES_DIR/bin/omarchy-theme-set-starship"
+  else
+    log "omarchy not found — skipping theme-set hook (starship.toml won't auto-follow theme changes on this machine)"
+  fi
+}
+
 main() {
   backup_live_files
   stow_zsh
   ensure_starship_installed
+  install_theme_hook
+  sync_starship_theme
   log "zsh bootstrap complete (tree-sitter-cli and other tool installs are handled by .zshrc itself on next shell start)"
 }
 

@@ -2,4 +2,5 @@
 .gitignore
 .gitmodules
 scripts
+starship\.toml\.template
 

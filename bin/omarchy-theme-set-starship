@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Renders zsh/.config/starship.toml.template into a live ~/.config/starship.toml,
+# substituting the current Omarchy theme's actual colors. Installed as an
+# Omarchy theme-set hook (~/.config/omarchy/hooks/theme-set.d/) by
+# bin/bootstrap-zsh, so this reruns automatically on every `omarchy theme
+# set`. Also safe to run standalone (e.g. once at bootstrap time) -- it
+# doesn't use $1 (the theme slug Omarchy passes to theme-set hooks), it just
+# reads whatever theme is currently active.
+#
+# On non-Omarchy machines (e.g. a Mac) colors.toml never exists, so this
+# falls back to starship's own named colors -- same idea as kitty's
+# fallback-theme.conf and nvim's theme.lua dofile-or-{} guard: without
+# Omarchy driving it, still produce a sane, static ~/.config/starship.toml
+# instead of leaving one missing entirely.
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+TEMPLATE="$DOTFILES_DIR/zsh/.config/starship.toml.template"
+COLORS_TOML="$HOME/.local/state/omarchy/current/theme/colors.toml"
+OUTPUT="$HOME/.config/starship.toml"
+
+log() {
+  printf '%s\n' "$*"
+}
+
+# Extract a top-level `key = "value"` from colors.toml.
+toml_value() {
+  awk -F'"' -v key="$1" '$0 ~ "^"key"[[:space:]]*=" {print $2; exit}' "$COLORS_TOML"
+}
+
+main() {
+  if [[ ! -f "$TEMPLATE" ]]; then
+    log "WARNING: $TEMPLATE not found -- skipping starship theme sync"
+    exit 0
+  fi
+
+  local accent clean dirty warn
+  if [[ -f "$COLORS_TOML" ]]; then
+    accent=$(toml_value accent)
+    clean=$(toml_value green)
+    dirty=$(toml_value red)
+    warn=$(toml_value yellow)
+  fi
+
+  # Missing file, or a key colors.toml didn't define -- fall back per-field
+  # rather than aborting, so a partial/odd theme still yields a usable config.
+  accent=${accent:-cyan}
+  clean=${clean:-green}
+  dirty=${dirty:-red}
+  warn=${warn:-yellow}
+
+  mkdir -p "$(dirname "$OUTPUT")"
+  sed \
+    -e "s/__ACCENT__/${accent}/g" \
+    -e "s/__CLEAN__/${clean}/g" \
+    -e "s/__DIRTY__/${dirty}/g" \
+    -e "s/__WARN__/${warn}/g" \
+    "$TEMPLATE" > "$OUTPUT"
+
+  log "starship.toml synced to current Omarchy theme (accent=$accent clean=$clean dirty=$dirty warn=$warn)"
+}
+
+main "$@"
