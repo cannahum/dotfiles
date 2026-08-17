@@ -92,10 +92,22 @@ fi
 if command -v zoxide >/dev/null; then
   export _ZO_DOCTOR=0
   eval "$(zoxide init zsh)"
-  # only alias cd if `z` exists to avoid breaking builtin cd
-  if command -v z >/dev/null; then
-    alias cd='z'
-  fi
+
+  # Mirrors Omarchy's own bash zd() (default/bash/aliases): real `cd` for no
+  # args or a literal directory, zoxide's frecency jump only as a fallback --
+  # safer than a blind `alias cd=z`, which hands every cd straight to zoxide.
+  cd() {
+    if (( $# == 0 )); then
+      builtin cd ~ || return
+    elif [[ -d $1 ]]; then
+      builtin cd "$1" || return
+    else
+      if ! z "$@"; then
+        echo "Error: Directory not found"
+        return 1
+      fi
+    fi
+  }
 fi
 
 ### --- pnpm path ---
