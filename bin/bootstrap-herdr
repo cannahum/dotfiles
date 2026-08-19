@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+CONFIG_DIR="$HOME/.config/herdr"
+TARGET_CONF="$CONFIG_DIR/config.toml"
+
+log() {
+  printf '%s\n' "$*"
+}
+
+have_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+displace_existing_conf() {
+  # stow refuses to symlink over a real file, so move any pre-existing,
+  # non-dotfiles-managed config.toml aside so the link can be created.
+  if [[ -f $TARGET_CONF && ! -L $TARGET_CONF ]]; then
+    local backup="$TARGET_CONF.pre-stow-$(date +%s)"
+    mv "$TARGET_CONF" "$backup"
+    log "Moved existing config.toml aside -> $backup"
+  fi
+}
+
+stow_herdr() {
+  if have_cmd stow; then
+    log "Stowing herdr from $DOTFILES_DIR"
+    mkdir -p "$CONFIG_DIR"
+    displace_existing_conf
+    (cd "$DOTFILES_DIR" && stow herdr)
+  else
+    log "GNU Stow not found — skipping"
+  fi
+}
+
+reload_herdr() {
+  if have_cmd omarchy-restart-herdr; then
+    omarchy-restart-herdr && log "Reloaded herdr" || log "WARNING: herdr reload-config failed"
+  elif have_cmd herdr; then
+    herdr server reload-config >/dev/null 2>&1 && log "Reloaded herdr" || true
+  fi
+}
+
+main() {
+  stow_herdr
+  reload_herdr
+  log "herdr bootstrap complete"
+}
+
+main "$@"

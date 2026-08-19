@@ -6,6 +6,7 @@ export DOTFILES_DIR
 
 declare -A MODULES=(
   [tmux]="$DOTFILES_DIR/bin/bootstrap-tmux"
+  [herdr]="$DOTFILES_DIR/bin/bootstrap-herdr"
   [kanata]="$DOTFILES_DIR/bin/bootstrap-kanata"
   [hyprland]="$DOTFILES_DIR/bin/hypr/bootstrap-hyprland"
   [omarchy-shell]="$DOTFILES_DIR/bin/bootstrap-omarchy-shell"
