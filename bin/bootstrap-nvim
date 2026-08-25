@@ -53,9 +53,37 @@ backup_live_files() {
 stow_nvim() {
   if have_cmd stow; then
     log "Stowing nvim from $DOTFILES_DIR"
-    (cd "$DOTFILES_DIR" && stow nvim)
+    # --no-folding: without it, stow collapses an entire uncontested subtree
+    # (here, all of ~/.config/nvim) into ONE directory symlink rather than
+    # linking file-by-file. link_omarchy_theme below needs to replace a
+    # single leaf (lua/plugins/theme.lua) with an unrelated symlink; through
+    # a folded ancestor that leaf's live path resolves straight into this
+    # repo, so ln -sfn there would edit the repo's own tracked file instead
+    # of the live tree (same hazard backup_live_files works around above,
+    # hit for real once already). Per-file symlinks make every leaf path
+    # independent, so replacing one never touches the others.
+    (cd "$DOTFILES_DIR" && stow --no-folding nvim)
   else
     log "GNU Stow not found — skipping"
+  fi
+}
+
+# Vanilla omarchy-nvim ships lua/plugins/theme.lua as a symlink straight
+# into ~/.local/state/omarchy/current/theme/neovim.lua, so lazy.nvim's own
+# built-in change-detector (which already polls every file under
+# lua/plugins/ and fires User LazyReload on a change) picks up theme
+# switches for free — no extra watcher code needed. Our theme.lua is a
+# real file (stow needs one; a symlink here would be dangling and break
+# `{ import = "plugins" }` on non-Omarchy machines like the Mac), so on
+# Omarchy we replace the stow-created symlink with the same direct link
+# vanilla uses. This has to rerun after every stow_nvim, since stowing
+# resets it back to pointing at our repo's copy.
+link_omarchy_theme() {
+  local omarchy_theme_file="$HOME/.local/state/omarchy/current/theme/neovim.lua"
+
+  if have_cmd omarchy && [[ -f "$omarchy_theme_file" ]]; then
+    log "Linking theme.lua to Omarchy's current theme"
+    ln -sfn "$omarchy_theme_file" "$NVIM_DIR/lua/plugins/theme.lua"
   fi
 }
 
@@ -71,6 +99,7 @@ sync_plugins() {
 main() {
   backup_live_files
   stow_nvim
+  link_omarchy_theme
   sync_plugins
   log "nvim bootstrap complete"
 }
