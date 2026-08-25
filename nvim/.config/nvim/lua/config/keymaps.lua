@@ -2,8 +2,6 @@
 
 local keymap = vim.keymap -- for conciseness
 
-keymap.set("n", "<leader>nh", ":nohl<CR>", { desc = "Clear search highlights" })
-
 -- Increment/decrement: dropped <leader>+/<leader>- (they just called vim's
 -- own native <C-a>/<C-x>, adding nothing) -- also frees <leader>- for
 -- LazyVim's "Split Window Below", which our override was silently

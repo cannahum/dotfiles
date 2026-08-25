@@ -7,6 +7,39 @@ return {
 		config = function()
 			local transparency_file = vim.fn.stdpath("config") .. "/plugin/after/transparency.lua"
 
+			-- WIP: this poller duplicates lazy.nvim's own built-in change
+			-- detector (which already polls files under lua/plugins/ every 2s
+			-- and fires this same LazyReload event) -- next step is to remove
+			-- it and instead symlink theme.lua straight to Omarchy's
+			-- neovim.lua at bootstrap time, the way vanilla omarchy-nvim does,
+			-- so lazy's existing poller covers this with no extra code.
+			--
+			-- theme.lua reads the active theme via dofile() (not require), so it
+			-- degrades to {} off Omarchy instead of erroring on a missing symlink
+			-- (see theme.lua's header). That indirection means lazy.nvim's own
+			-- change-detector -- which only watches the mtime of files it
+			-- requires under lua/plugins/ -- never sees theme.lua's dofile'd
+			-- target change, so it never fires the LazyReload event this autocmd
+			-- waits for. Omarchy swaps themes by rm -rf'ing and mv'ing a whole
+			-- directory into place (see omarchy-theme-set), which also
+			-- invalidates any inotify-style watch on a file inside it, so poll
+			-- by stat -- like lazy.nvim itself does -- instead of watching it.
+			-- Off Omarchy this file never exists, so the poll simply never starts.
+			local omarchy_theme_file = vim.fn.expand("~/.local/state/omarchy/current/theme/neovim.lua")
+			if vim.fn.filereadable(omarchy_theme_file) == 1 then
+				local last_stat = vim.uv.fs_stat(omarchy_theme_file)
+				local timer = vim.uv.new_timer()
+				timer:start(2000, 2000, function()
+					local stat = vim.uv.fs_stat(omarchy_theme_file)
+					if stat and (not last_stat or stat.mtime.sec ~= last_stat.mtime.sec or stat.size ~= last_stat.size) then
+						last_stat = stat
+						vim.schedule(function()
+							vim.api.nvim_exec_autocmds("User", { pattern = "LazyReload", modeline = false })
+						end)
+					end
+				end)
+			end
+
 			vim.api.nvim_create_autocmd("User", {
 				pattern = "LazyReload",
 				callback = function()
