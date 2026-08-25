@@ -52,6 +52,14 @@ backup_live_files() {
 
 stow_nvim() {
   if have_cmd stow; then
+    # link_omarchy_theme (below) points this one file at Omarchy's theme
+    # instead of our repo copy, which makes stow see it as "not owned by
+    # stow" on the next run and abort stowing the WHOLE package. Since
+    # link_omarchy_theme reruns after every stow_nvim anyway, it's safe to
+    # drop here first -- guarded by -L so a genuine live file (not yet a
+    # symlink) is left alone for backup_live_files to handle instead.
+    [[ -L "$NVIM_DIR/lua/plugins/theme.lua" ]] && rm -f "$NVIM_DIR/lua/plugins/theme.lua"
+
     log "Stowing nvim from $DOTFILES_DIR"
     # --no-folding: without it, stow collapses an entire uncontested subtree
     # (here, all of ~/.config/nvim) into ONE directory symlink rather than
