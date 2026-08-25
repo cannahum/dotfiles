@@ -1,14 +1,9 @@
--- On Omarchy, bin/bootstrap-nvim re-symlinks this file straight to
--- ~/.local/state/omarchy/current/theme/neovim.lua -- the file Omarchy
--- itself writes/relinks on every `omarchy theme set`, in LazyVim
--- plugin-spec format (see all-themes.lua's header comment for why the
--- plugin name/branch there have to match what that generates). That makes
--- this file's own content irrelevant on Omarchy: lazy.nvim's built-in
--- change-detector polls it directly and drives omarchy-theme-hotreload.lua.
---
--- This repo-tracked copy only matters off Omarchy (e.g. the Mac), where
--- bootstrap-nvim leaves the stow-created symlink alone -- so it just
--- contributes no theme opinion. all-themes.lua already makes every theme
--- available regardless of platform; without Omarchy driving it, switch
--- manually with :colorscheme <name>.
+-- On Omarchy, this file's content doesn't matter: bin/bootstrap-nvim's
+-- link_omarchy_theme re-symlinks it straight to Omarchy's own theme file
+-- at install time -- see that function for the full mechanism. Off
+-- Omarchy (e.g. the Mac), that step is a no-op, so this plain stow
+-- symlink is what actually loads -- contributing no theme opinion.
+-- all-themes.lua already makes every theme available regardless of
+-- platform; without Omarchy driving it, switch manually with
+-- :colorscheme <name>.
 return {}

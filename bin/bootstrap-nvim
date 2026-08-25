@@ -77,15 +77,25 @@ stow_nvim() {
 }
 
 # Vanilla omarchy-nvim ships lua/plugins/theme.lua as a symlink straight
-# into ~/.local/state/omarchy/current/theme/neovim.lua, so lazy.nvim's own
-# built-in change-detector (which already polls every file under
-# lua/plugins/ and fires User LazyReload on a change) picks up theme
-# switches for free — no extra watcher code needed. Our theme.lua is a
-# real file (stow needs one; a symlink here would be dangling and break
-# `{ import = "plugins" }` on non-Omarchy machines like the Mac), so on
-# Omarchy we replace the stow-created symlink with the same direct link
-# vanilla uses. This has to rerun after every stow_nvim, since stowing
-# resets it back to pointing at our repo's copy.
+# into ~/.local/state/omarchy/current/theme/neovim.lua -- the file Omarchy
+# itself writes/relinks on every `omarchy theme set`, in LazyVim
+# plugin-spec format (see nvim/.config/nvim/lua/plugins/all-themes.lua's
+# header comment for why the plugin name/branch there have to match what
+# that generates). Because that symlinked path sits under lua/plugins/,
+# lazy.nvim's own built-in change-detector -- which already polls every
+# file there every 2s and fires User LazyReload on a change -- picks up
+# theme switches for free, and omarchy-theme-hotreload.lua's listener
+# reapplies the colorscheme. No extra watcher code needed.
+#
+# Our nvim/.config/nvim/lua/plugins/theme.lua is a real file, not a
+# symlink (stow needs a real file to track; a symlink straight to
+# Omarchy's path would dangle and break `{ import = "plugins" }` on a
+# non-Omarchy machine like the Mac, where it just returns {} and
+# contributes no theme opinion -- see that file). On Omarchy, this
+# function replaces the stow-created symlink with the same direct link
+# vanilla uses, so lazy's change-detector reaches Omarchy's real file
+# instead of ours. Has to rerun after every stow_nvim, since stowing
+# resets the symlink back to pointing at our repo's copy.
 link_omarchy_theme() {
   local omarchy_theme_file="$HOME/.local/state/omarchy/current/theme/neovim.lua"
 
