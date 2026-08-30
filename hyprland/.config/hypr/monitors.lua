@@ -10,9 +10,17 @@ hl.monitor({ output = "", mode = "preferred", position = "auto", scale = omarchy
 -- "auto" positioning placed monitors in connection order, which put the
 -- laptop panel on the left — backwards from the physical desk layout (Dell
 -- U2421E on the left, laptop on the right). Pin explicit positions instead:
--- DP-1 anchors the layout at 0x0, and eDP-1 sits to its right, starting
--- where DP-1's logical width (1920px at scale 1) ends.
-hl.monitor({ output = "DP-1", mode = "1920x1200@59.95", position = "0x0", scale = 1 })
+-- the Dell anchors the layout at 0x0, and eDP-1 sits to its right, starting
+-- where the Dell's logical width (1920px at scale 1) ends.
+--
+-- Matched by "desc:" (EDID make+model), not a DP-N port name: DP-N is
+-- assigned by DRM connector enumeration order, which can silently renumber
+-- across a reboot, driver update, or Omarchy update -- this broke once
+-- already (rule pinned to DP-1, monitor came back as DP-2, rule stopped
+-- matching, layout fell through to the auto-position catch-all below and
+-- reversed). desc: keys off the monitor's own EDID instead, so it survives
+-- that. Get the exact string from `hyprctl monitors` -> description.
+hl.monitor({ output = "desc:Dell Inc. DELL U2421E", mode = "1920x1200@59.95", position = "0x0", scale = 1 })
 
 -- Pre-quattro ~/.config/hypr/monitors.conf pinned the laptop panel to a 1.2
 -- fractional scale. This explicit eDP-1 rule (rather than editing
