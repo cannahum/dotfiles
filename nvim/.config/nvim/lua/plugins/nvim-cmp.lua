@@ -28,8 +28,12 @@ return {
 
     cmp.setup({
       completion = {
-        completeopt = "menu,menuone,preview,noselect",
+        -- noinsert (not noselect): the first match is highlighted but not
+        -- written into the buffer while browsing, since confirm() below
+        -- forces select=true regardless of highlight.
+        completeopt = "menu,menuone,noinsert,preview",
       },
+      preselect = cmp.PreselectMode.Item,
       snippet = { -- configure how nvim-cmp interacts with snippet engine
         expand = function(args)
           luasnip.lsp_expand(args.body)
@@ -38,14 +42,16 @@ return {
       mapping = cmp.mapping.preset.insert({
         ["<C-k>"] = cmp.mapping.select_prev_item(), -- previous suggestion
         ["<C-j>"] = cmp.mapping.select_next_item(), -- next suggestion
-        -- <C-Space> and <C-b> are Omarchy's tmux prefix/prefix2 — tmux eats
-        -- them before nvim ever sees them, so completion trigger/scroll-back
-        -- live on <C-y>/<C-u> instead.
+        -- <C-b> stays tmux's real prefix (tmux.user.conf), so scroll-back
+        -- lives on <C-u> instead of the conventional <C-b>.
         ["<C-u>"] = cmp.mapping.scroll_docs(-4),
         ["<C-f>"] = cmp.mapping.scroll_docs(4),
-        ["<C-y>"] = cmp.mapping.complete(), -- show completion suggestions
+        ["<C-Space>"] = cmp.mapping.complete(), -- show completion suggestions
         ["<C-e>"] = cmp.mapping.abort(), -- close completion window
-        ["<CR>"] = cmp.mapping.confirm({ select = false }),
+        -- select = true: accept the top match even if you haven't
+        -- explicitly navigated to it with <C-j>/<C-k>.
+        ["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["<C-y>"] = cmp.mapping.confirm({ select = true }),
       }),
       -- sources for autocompletion
       sources = cmp.config.sources({
