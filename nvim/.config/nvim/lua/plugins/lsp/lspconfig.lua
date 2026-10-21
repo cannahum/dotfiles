@@ -158,7 +158,54 @@ vim.lsp.config("emmet_ls", {
 -- Java: nvim-lspconfig's built-in jdtls default already provides correct
 -- root_markers and a cmd that computes a per-project workspace dir, so we
 -- only need to layer on_attach/capabilities here.
+local JDTLS_MIN_JAVA = 25
+
+local function java_major(java_bin)
+  local out = vim.fn.system({ java_bin, "-version" })
+  if vim.v.shell_error ~= 0 then
+    return nil
+  end
+  return tonumber(out:match('version "(%d+)'))
+end
+
+-- The Mason jdtls build needs a newer JDK than the projects it edits, so find
+-- one for the server itself: JAVA_HOME, then mise, then whatever `java` is on PATH.
+local function find_jdtls_java()
+  local candidates = {}
+  if vim.env.JAVA_HOME and vim.env.JAVA_HOME ~= "" then
+    table.insert(candidates, vim.env.JAVA_HOME .. "/bin/java")
+  end
+  if vim.fn.executable("mise") == 1 then
+    local home = vim.fn.system({ "mise", "where", "java@temurin-" .. JDTLS_MIN_JAVA }):gsub("%s+$", "")
+    if vim.v.shell_error == 0 then
+      table.insert(candidates, home .. "/bin/java")
+    end
+  end
+  table.insert(candidates, vim.fn.exepath("java"))
+
+  for _, bin in ipairs(candidates) do
+    if bin ~= "" and vim.fn.executable(bin) == 1 then
+      local major = java_major(bin)
+      if major and major >= JDTLS_MIN_JAVA then
+        return bin
+      end
+    end
+  end
+end
+
 vim.lsp.config("jdtls", {
+  cmd = function(dispatchers, config)
+    local java_bin = find_jdtls_java()
+    if not java_bin then
+      vim.notify(
+        ("jdtls needs Java %d+ to run and none was found (JAVA_HOME, mise, PATH)"):format(JDTLS_MIN_JAVA),
+        vim.log.levels.WARN
+      )
+      return vim.lsp.rpc.start({ "jdtls" }, dispatchers)
+    end
+    local ws = vim.fn.stdpath("cache") .. "/jdtls/" .. vim.fs.basename(config.root_dir or vim.fn.getcwd())
+    return vim.lsp.rpc.start({ "jdtls", "--java-executable", java_bin, "-data", ws }, dispatchers)
+  end,
   on_attach = function(client, bufnr)
     default_on_attach(client, bufnr)
     -- jdtls handles format requests fine but doesn't reliably advertise the
@@ -168,6 +215,28 @@ vim.lsp.config("jdtls", {
     client.server_capabilities.documentRangeFormattingProvider = true
   end,
   capabilities = common_capabilities,
+})
+
+-- jdtls doesn't reliably notice build.gradle edits, so its classpath goes stale
+-- (e.g. a newly added dependency stays unresolved). Force a re-import.
+vim.api.nvim_create_user_command("JdtlsReimport", function()
+  local client = vim.lsp.get_clients({ name = "jdtls" })[1]
+  if not client then
+    vim.notify("jdtls is not running", vim.log.levels.WARN)
+    return
+  end
+  client:notify("java/projectConfigurationUpdate", { uri = vim.uri_from_bufnr(0) })
+end, {})
+
+vim.api.nvim_create_autocmd("BufWritePost", {
+  group = vim.api.nvim_create_augroup("JdtlsAutoReimport", { clear = true }),
+  pattern = { "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "pom.xml" },
+  callback = function(ev)
+    local client = vim.lsp.get_clients({ name = "jdtls" })[1]
+    if client then
+      client:notify("java/projectConfigurationUpdate", { uri = vim.uri_from_bufnr(ev.buf) })
+    end
+  end,
 })
 
 -- Kotlin: custom root_dir to find the outermost Gradle root (monorepo-safe).
@@ -225,7 +294,6 @@ return {
   dependencies = {
     "hrsh7th/cmp-nvim-lsp",
     { "antosha417/nvim-lsp-file-operations", config = true },
-    { "folke/neodev.nvim", opts = {} },
   },
   config = function()
     local mason_lspconfig = require("mason-lspconfig")
@@ -259,7 +327,7 @@ return {
         opts.desc = "Show documentation for what is under cursor"
         keymap.set("n", "K", vim.lsp.buf.hover, opts) -- show documentation for what is under cursor
         opts.desc = "Restart LSP"
-        keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts)
+        keymap.set("n", "<leader>rs", "<cmd>lsp restart<CR>", opts)
         opts.desc = "LSP info (checkhealth)"
         keymap.set("n", "<leader>li", ":checkhealth lsp<CR>", opts)
       end,
