@@ -37,6 +37,8 @@ return {
         sql = { "sql-formatter" },
         proto = { "buf" },
         swift = { "swift" },
+        -- zig fmt uses the project's pinned zig (via mise), unlike zls which can drift
+        zig = { "zigfmt", lsp_format = "fallback" },
         ["*"] = { "trim_newlines", "trim_whitespace" },
       },
 

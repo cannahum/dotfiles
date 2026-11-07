@@ -118,6 +118,13 @@ vim.lsp.config("eslint", {
 
 vim.lsp.config("zls", {
   cmd = { vim.fn.stdpath("data") .. "/mason/bin/zls" },
+  settings = {
+    zls = {
+      -- run `zig build check` on save so real compiler errors show up as diagnostics
+      enable_build_on_save = true,
+      build_on_save_step = "check",
+    },
+  },
   on_attach = function(client, bufnr)
     default_on_attach(client, bufnr)
     client.server_capabilities.documentFormattingProvider = true
