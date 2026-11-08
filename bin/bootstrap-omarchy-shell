@@ -11,7 +11,6 @@ PACKAGE_DIR="$DOTFILES_DIR/omarchy-shell/.config/omarchy"
 # their own; blindly folding the directory would fight them.
 MANAGED_PATHS=(
   "shell.json"
-  "plugins/cannahum.workspaces"
 )
 
 log() {
