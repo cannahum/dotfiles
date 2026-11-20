@@ -1,9 +1,10 @@
 -- Clipboard for sessions whose yanks may need to reach another machine:
 -- every copy is emitted as OSC 52 (inside tmux this becomes a tmux buffer,
 -- rebroadcast to every attached client, local or SSH). Paste prefers the
--- local Wayland clipboard when one is available, so content copied in other
--- apps remains pasteable; without a display, paste is an OSC 52 query that
--- tmux (or the terminal) answers.
+-- local clipboard tool (wl-paste / pbpaste) when one is available, so content
+-- copied in other apps remains pasteable. Without one, paste returns what nvim
+-- last copied itself: an OSC 52 paste query needs a terminal reply, which
+-- tmux/herdr often never send, so nvim would block until its timeout.
 local M = {}
 
 local function proc_lines(pid, file)
@@ -53,12 +54,17 @@ function M.setup()
   local has_wayland = vim.env.WAYLAND_DISPLAY ~= nil
     and vim.fn.executable("wl-copy") == 1
     and vim.fn.executable("wl-paste") == 1
+  local has_mac = vim.fn.has("mac") == 1 and vim.fn.executable("pbpaste") == 1
+  local last = { ["+"] = { {}, "v" }, ["*"] = { {}, "v" } }
 
   local function copy(register)
     local emit = osc52.copy(register)
 
-    return function(lines)
-      if has_wayland then
+    return function(lines, regtype)
+      last[register] = { lines, regtype or "v" }
+      if has_mac then
+        vim.fn.system({ "pbcopy" }, lines)
+      elseif has_wayland then
         local cmd = { "wl-copy", "--sensitive", "--type", "text/plain" }
         if register == "*" then
           cmd[#cmd + 1] = "--primary"
@@ -73,8 +79,17 @@ function M.setup()
   end
 
   local function paste(register)
+    if has_mac then
+      return function()
+        local lines = vim.fn.systemlist({ "pbpaste" }, "", 1)
+        return vim.v.shell_error == 0 and lines or last[register]
+      end
+    end
+
     if not has_wayland then
-      return osc52.paste(register)
+      return function()
+        return last[register]
+      end
     end
 
     return function()
